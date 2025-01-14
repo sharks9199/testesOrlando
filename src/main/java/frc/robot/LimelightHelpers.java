@@ -548,6 +548,10 @@ public class LimelightHelpers {
         }
     }
 
+    public void removeError(){
+        printPoseEstimate(null);
+    }
+
     public static NetworkTable getLimelightNTTable(String tableName) {
         return NetworkTableInstance.getDefault().getTable(sanitizeName(tableName));
     }
