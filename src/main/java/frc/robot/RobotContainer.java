@@ -13,40 +13,43 @@ package frc.robot;
     import edu.wpi.first.wpilibj2.command.InstantCommand;
     import edu.wpi.first.wpilibj2.command.button.JoystickButton;
     import frc.robot.Constants.OIConstants;
+    import frc.robot.commands.AprilTagAllignCmd;
     import frc.robot.commands.SwerveJoystickCmd;
+    import frc.robot.subsystems.LimelightSubsystem;
     import frc.robot.subsystems.SwerveSubsystem;
 // ============================================================================
 
 public class RobotContainer {
-        // Cria o objeto para a escolha do autônomo
-        SendableChooser<Command> AutoChooser = AutoBuilder.buildAutoChooser();
+    // Cria o objeto para a escolha do autônomo
+    SendableChooser<Command> AutoChooser = AutoBuilder.buildAutoChooser();
 
-        // ======================== INSTÂNCIA OS SUBSISTEMAS =========================
-        private final static SwerveSubsystem swerveSubsystem = new SwerveSubsystem();
-        private final static Joystick Joystick1 = new Joystick(OIConstants.kDriverControllerPort);
+    // ======================== INSTÂNCIA OS SUBSISTEMAS =========================
+    private final static SwerveSubsystem swerveSubsystem = new SwerveSubsystem();
+    private final static LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
+    private final static Joystick Joystick1 = new Joystick(OIConstants.kDriverControllerPort);
+    // ============================================================================
+
+    public static Field2d field = new Field2d();
+
+    public RobotContainer() {
+        // =========================== COMANDOS PADRÕES ===========================
+        //Comando padrão swerve operado por joystick
+        swerveSubsystem.setDefaultCommand(new SwerveJoystickCmd(
+            swerveSubsystem, () -> -Joystick1.getY(), () -> -Joystick1.getX(), 
+                () -> -OIConstants.getGyroAxis(Joystick1), () -> false));
         // ============================================================================
 
-        public static Field2d field = new Field2d();
+        //Atribui as funções para cada botão do Controle
+        configureButtonBindings();
+    }
 
-        public RobotContainer() {
-            // =========================== COMANDOS PADRÕES ===========================
-            //Comando padrão swerve operado por joystick
-            swerveSubsystem.setDefaultCommand(new SwerveJoystickCmd(
-                swerveSubsystem, () -> -Joystick1.getY(), () -> -Joystick1.getX(), 
-                    () -> -OIConstants.getGyroAxis(Joystick1), () -> false));
-            // ============================================================================
-
-            //Atribui as funções para cada botão do Controle
-            configureButtonBindings();
-        }
-
-        private void configureButtonBindings() {
-            // =========================== CONTROLE DO SWERVE ===========================
-            //Resetar referência swerve
-            new JoystickButton(Joystick1, OIConstants.kResetEncodersButtonIdx).onTrue(new InstantCommand(()-> swerveSubsystem.resetSwerve()));
-            
-            // ============================================================================
-        }
+    private void configureButtonBindings() {
+        // =========================== CONTROLE DO SWERVE ===========================
+        //Resetar referência swerve
+        new JoystickButton(Joystick1, OIConstants.kResetEncodersButtonIdx).onTrue(new InstantCommand(()-> swerveSubsystem.resetSwerve()));
+        new JoystickButton(Joystick1, 6).whileTrue(new AprilTagAllignCmd(limelightSubsystem, swerveSubsystem, 1));
+        // ============================================================================
+    }
 
     // ========== EXECUTA QUANDO O ROBÔ INICIAR ==========
     public void doWhenRobotInit() {
