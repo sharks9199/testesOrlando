@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,11 +19,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.LimelightHelpers;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.config.PIDConstants;
 import frc.robot.Constants.DriveConstants;
 
@@ -82,7 +83,7 @@ public class SwerveSubsystem extends SubsystemBase {
     private final SwerveDriveOdometry odometer = new SwerveDriveOdometry(DriveConstants.kDriveKinematics,
     new Rotation2d(0), getSwerveModulePosition());
 
-    public final LimelightHelpers limelight = new LimelightHelpers();
+    public final LimelightSubsystem limelight = new LimelightSubsystem();
     private final Field2d m_field = new Field2d();
 
     SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(DriveConstants.kDriveKinematics, getRotation2d(), getSwerveModulePosition(), new Pose2d());
@@ -134,9 +135,14 @@ public class SwerveSubsystem extends SubsystemBase {
         }).start();
     }
 
+    public void followPath(PathPlannerPath path){
+        AutoBuilder.followPath(path).schedule();
+    }
+
     public void zeroHeading() {
         gyro.reset();
     }
+
     public void setHeading(double angle) {
         gyro.setYaw(angle);
     }
@@ -159,8 +165,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public Pose2d getPoseEstimator() {
         Pose2d pose2 = poseEstimator.getEstimatedPosition();
-        double Y = pose2.getY();
-        Pose2d tranlatedPose =  new Pose2d(pose2.getX(), Y, pose2.getRotation());
+        Pose2d tranlatedPose =  new Pose2d(pose2.getX(), pose2.getY(), pose2.getRotation());
         return tranlatedPose;
     }
 
@@ -311,14 +316,18 @@ public class SwerveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        
         publisherStates.set(getSwerveModuleState());
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));
         
         odometer.update(getRotation2d(),getSwerveModulePosition());
-
         poseEstimator.update(getRotation2d(), getSwerveModulePosition());
+        
+        if (limelight.getID() >= 0) {
+            poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.3, 0.7, 180));
+            poseEstimator.addVisionMeasurement(limelight.getMeasurement().pose, limelight.getMeasurement().timestampSeconds);
+        }
+
         // Do this in either robot or subsystem init
         SmartDashboard.putData("Field", m_field);
 
@@ -330,14 +339,11 @@ public class SwerveSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Back Left", backLeft.getAbsoluteEncoderRad());
         SmartDashboard.putNumber("Back Right", backRight.getAbsoluteEncoderRad());
 
-        SmartDashboard.putNumber("FR NEO", frontRight.getTurningPosition());
-        SmartDashboard.putNumber("FL NEO", frontLeft.getTurningPosition());
-        SmartDashboard.putNumber("BR NEO", backRight.getTurningPosition());
-        SmartDashboard.putNumber("BL NEO", backLeft.getTurningPosition());
+        SmartDashboard.putNumber("Pose X", getPoseEstimator().getX());
+        SmartDashboard.putNumber("Pose Y", getPoseEstimator().getY());
 
-        SmartDashboard.putNumber("FR Kraken", frontRight.getDrivePosition());
-        SmartDashboard.putNumber("FL Kraken", frontLeft.getDrivePosition());
-        SmartDashboard.putNumber("BR Kraken", backRight.getDrivePosition());
-        SmartDashboard.putNumber("BL Kraken", backLeft.getDrivePosition());
+        SmartDashboard.putNumber("Odo X", getPose().getX());
+        SmartDashboard.putNumber("Odo Y", getPose().getY());
+
     }
 }

@@ -16,7 +16,7 @@ public class Constants {
         public static final double kTurningEncoderRot2Rad = kTurningMotorGearRatio * 2 * Math.PI;
         public static final double kDriveEncoderRPM2MeterPerSec = kDriveEncoderRot2Meter / 60.0;
         public static final double kTurningEncoderRPM2RadPerSec = kTurningEncoderRot2Rad / 60.0;
-        public static final double kPTurning = 0.5;
+        public static final double kPTurning = 0.3;
     }
 
     public static final class DriveConstants {
@@ -117,48 +117,9 @@ public class Constants {
                         kMaxAngularSpeedRadiansPerSecond,
                         kMaxAngularAccelerationRadiansPerSecondSquared);
     }
-
-    public static final class intakeConstants {
-        public static final int controlMotorID = 9;
-        public static final int upperMotorID = 10;
-        public static final int lowerMotorID = 11;
-        public static final int planetaryMotorID = 12;
-        
-        public static double FloorIntakePosition = 40.5;
-        public static final double SourceIntakePosition = 11;
-        public static final double AMPIntakePosition = 11;
-        public static final double ShootIntakePosition = 11;
-        public static final double HomeIntakePosition = 11;
-
-        public static final double LowerIntakePosition = 8;
-        public static final double UpperIntakePosition = 8;
-
-        public static double IntakeSetpoint = 0;
-    }
-
-    public static final class shooterConstants {
-        public static final int controlMotorID = 14;
-        public static final int lowerMotorID = 15;
-        public static final int upperMotorID = 16;
-        public static final int planetaryMotorID = 17;
-        
-        public static final double SourceShooterPosition = 56;
-        public static final double AMPShooterPosition = 39;
-        public static final double ShootShooterPosition = 51;
-        public static final double HomeShooterPosition = 39;
-        
-        public static double ShooterSetpoint = 0;
-    }
-
-    public static final class elevatorConstants {
-        public static final int planetaryMotorID = 17;
-        
-        public static final double SourceElevatorPosition = 180;
-        public static final double AMPElevatorPosition = 85;
-        public static final double ShootElevatorPosition = -8;
-        public static final double HomeElevatorPosition = 180;
-
-        public static double ElevatorSetpoint = 0;
+    
+    public static final class LimelightConstants {
+        public static String LimelightID = "limelight-main"; 
     }
 
     public static final class XboxConstants {
@@ -188,7 +149,6 @@ public class Constants {
     }
 
     public static final class OIConstants {
-
         public static Boolean isXbox = DriverStation.getJoystickIsXbox(0);
 
         public static double getGyroAxis(Joystick joystick){
@@ -222,7 +182,6 @@ public class Constants {
         public static final int kDriverYAxis = 1;
         public static final int kDriverRotAxis = 2;
 
-        public static String limelightName = "limelight-intake";
         public static final int kSpeakerAlignButtonIdx = 7;
         public static final int kAMPAlignButtonIdx = 8;
         public static final int kSourceAlignButtonIdx = 5;
