@@ -32,9 +32,13 @@ public class LimelightSubsystem extends SubsystemBase {
     public double getPoseY(){
         return getRobotPose().getY();
     }
-
+    
     public Rotation2d getPoseRotation2d(){
         return getRobotPose().getRotation();
+    }
+    
+    public double getPipeline(){
+        return LimelightHelpers.getCurrentPipelineIndex(LimelightID);
     }
 
     public void setPipeline(int pipeline){

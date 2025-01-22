@@ -59,16 +59,19 @@ public class SwerveModule {
 
         turningMotorConfig.inverted(turningMotorReversed);
         turningMotorConfig.idleMode(IdleMode.kCoast);
-        turningMotorConfig.closedLoop.p(0.3);
+
+        turningMotorConfig.closedLoop.positionWrappingEnabled(true);
+        turningMotorConfig.closedLoop.positionWrappingInputRange(-Math.PI, Math.PI);
+        turningMotorConfig.closedLoop.p(0.7);
         //turningMotorConfig.closedLoopRampRate(1);
 
         turningMotorConfig.encoder.positionConversionFactor(ModuleConstants.kTurningEncoderRot2Rad);
         turningMotorConfig.encoder.velocityConversionFactor(ModuleConstants.kTurningEncoderRPM2RadPerSec);
 
         turningMotor.configure(turningMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-        turningPidController = new PIDController(ModuleConstants.kPTurning, 0, 0.01);
+        turningPidController = new PIDController(ModuleConstants.kPTurning, 0, 0);
         turningPidController.enableContinuousInput(-Math.PI, Math.PI);
-        turningPidController.setTolerance(0.029);
+        turningPidController.setTolerance(0.0);
 
         resetEncoders();
     }
@@ -127,7 +130,7 @@ public class SwerveModule {
         SmartDashboard.putNumber("Turning", getTurningPosition());
         SmartDashboard.putNumber("Angle", state.angle.getRadians());
         
-        m_turningClosedLoopController.setReference(state.angle.getRadians(), ControlType.kPosition);
+        turningMotor.set(turningPidController.calculate(getTurningPosition(), state.angle.getRadians()));
     }
 
     public void stop() {

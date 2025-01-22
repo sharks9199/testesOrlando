@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NTSendableBuilder;
 import edu.wpi.first.networktables.NetworkTable;
@@ -19,11 +20,17 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import java.util.List;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.config.PIDConstants;
 import frc.robot.Constants.DriveConstants;
 
@@ -78,10 +85,8 @@ public class SwerveSubsystem extends SubsystemBase {
 
     NTSendableBuilder builder;
     public NetworkTable m_table;
-
+    
     public final static Pigeon2 gyro = new Pigeon2(22);
-    private final SwerveDriveOdometry odometer = new SwerveDriveOdometry(DriveConstants.kDriveKinematics,
-    new Rotation2d(0), getSwerveModulePosition());
 
     public final LimelightSubsystem limelight = new LimelightSubsystem();
     private final Field2d m_field = new Field2d();
@@ -90,6 +95,10 @@ public class SwerveSubsystem extends SubsystemBase {
     
     public SwerveSubsystem() {
         RobotConfig config;
+
+        // Do this in either robot or subsystem init
+        SmartDashboard.putData("Field", m_field);
+        poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 1));
 
         try{
             config = RobotConfig.fromGUISettings();
@@ -135,6 +144,26 @@ public class SwerveSubsystem extends SubsystemBase {
         }).start();
     }
 
+    public PathPlannerPath createPath(Pose2d endPose){
+        Pose2d startPos = new Pose2d(getPoseEstimator().getTranslation(), getPoseEstimator().getRotation());
+
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(startPos, endPose);
+
+        PathPlannerPath path = new PathPlannerPath(
+            waypoints, 
+            new PathConstraints(
+                1.0, 0.5, 
+                Units.degreesToRadians(360), Units.degreesToRadians(540)
+            ),
+            null, 
+            new GoalEndState(0.0, endPose.getRotation())
+        );
+
+        path.preventFlipping = true;
+        System.out.println("Path Created!");
+        return path;
+    }
+
     public void followPath(PathPlannerPath path){
         AutoBuilder.followPath(path).schedule();
     }
@@ -159,38 +188,14 @@ public class SwerveSubsystem extends SubsystemBase {
         return Rotation2d.fromDegrees(getHeading());
     }
 
-    public Pose2d getPose() {
-        return odometer.getPoseMeters();
-    }
-
     public Pose2d getPoseEstimator() {
         Pose2d pose2 = poseEstimator.getEstimatedPosition();
         Pose2d tranlatedPose =  new Pose2d(pose2.getX(), pose2.getY(), pose2.getRotation());
         return tranlatedPose;
     }
 
-    public void resetPose(Pose2d pose) {
-        odometer.resetPosition(getRotation2d(),getSwerveModulePosition(), pose);
-    }
-
     public void resetPoseEstimator(Pose2d pose) {
         poseEstimator.resetPosition(getRotation2d(), getSwerveModulePosition(), pose);
-    }
-
-    public void resetOdometryLimelight(double x, double y, Rotation2d newRotation2d) {
-        odometer.resetPosition(getRotation2d(), getSwerveModulePosition(), new Pose2d(x,y, newRotation2d));
-    }
-
-    public double getOdometryX(){
-        return getPose().getX();
-    }
-
-    public double getOdometryY(){
-        return getPose().getY();
-    }
-
-    public double getOdometryDegrees(){
-        return getPose().getRotation().getDegrees();
     }
 
     public void stopModules() {
@@ -211,7 +216,6 @@ public class SwerveSubsystem extends SubsystemBase {
         zeroHeading();
         resetAllEncoders();
 
-        resetPose(new Pose2d());
         resetPoseEstimator(new Pose2d());
     }
 
@@ -320,30 +324,27 @@ public class SwerveSubsystem extends SubsystemBase {
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));
         
-        odometer.update(getRotation2d(),getSwerveModulePosition());
+        //odometer.update(getRotation2d(),getSwerveModulePosition());
         poseEstimator.update(getRotation2d(), getSwerveModulePosition());
         
         if (limelight.getID() >= 0) {
-            poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.3, 0.7, 180));
             poseEstimator.addVisionMeasurement(limelight.getMeasurement().pose, limelight.getMeasurement().timestampSeconds);
+            if (limelight.getPipeline() != 1) {
+                limelight.setPipeline(1);
+            }
         }
 
-        // Do this in either robot or subsystem init
-        SmartDashboard.putData("Field", m_field);
+        //SmartDashboard.putNumber("Front Left", frontLeft.getAbsoluteEncoderRad());
+        //SmartDashboard.putNumber("Front Right", frontRight.getAbsoluteEncoderRad());
+        //SmartDashboard.putNumber("Back Left", backLeft.getAbsoluteEncoderRad());
+        //SmartDashboard.putNumber("Back Right", backRight.getAbsoluteEncoderRad());
 
-        // Do this in either robot periodic or subsystem periodic
-        m_field.setRobotPose(poseEstimator.getEstimatedPosition());
+        //SmartDashboard.putNumber("Pose X", getPoseEstimator().getX());
+        //SmartDashboard.putNumber("Pose Y", getPoseEstimator().getY());
 
-        SmartDashboard.putNumber("Front Left", frontLeft.getAbsoluteEncoderRad());
-        SmartDashboard.putNumber("Front Right", frontRight.getAbsoluteEncoderRad());
-        SmartDashboard.putNumber("Back Left", backLeft.getAbsoluteEncoderRad());
-        SmartDashboard.putNumber("Back Right", backRight.getAbsoluteEncoderRad());
-
-        SmartDashboard.putNumber("Pose X", getPoseEstimator().getX());
-        SmartDashboard.putNumber("Pose Y", getPoseEstimator().getY());
-
-        SmartDashboard.putNumber("Odo X", getPose().getX());
-        SmartDashboard.putNumber("Odo Y", getPose().getY());
-
+        //SmartDashboard.putNumber("Odo X", getPose().getX());
+        //SmartDashboard.putNumber("Odo Y", getPose().getY());
+        
+        //SmartDashboard.putNumber("Heading", getHeading());
     }
 }
