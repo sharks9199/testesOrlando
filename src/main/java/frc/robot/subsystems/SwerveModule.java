@@ -7,7 +7,6 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -28,14 +27,13 @@ public class SwerveModule {
     private final TalonFXConfiguration driveMotorConfig;
     private final SparkMax turningMotor;
     private final SparkMaxConfig turningMotorConfig;
-
+    private double turningMotorSpeed;
     private final CANcoder absoluteEncoder;
 
     private final PIDController turningPidController;
 
     private final boolean absoluteEncoderReversed;
     private final double absoluteEncoderOffsetRad;
-    private final SparkClosedLoopController m_turningClosedLoopController;
 
     public SwerveModule(int driveMotorId, int turningMotorId, boolean driveMotorReversed, boolean turningMotorReversed,
                         int absoluteEncoderId, double absoluteEncoderOffset, boolean absoluteEncoderReversed) {
@@ -44,26 +42,17 @@ public class SwerveModule {
         this.absoluteEncoderReversed = absoluteEncoderReversed;
 
         absoluteEncoder = new CANcoder(absoluteEncoderId);
-
         driveMotor = new TalonFX(driveMotorId);
         
         driveMotorConfig = new TalonFXConfiguration();
-
         driveMotorConfig.Feedback.withSensorToMechanismRatio(0.9);
-
         driveMotor.getConfigurator().apply(driveMotorConfig);
 
         turningMotor = new SparkMax(turningMotorId, MotorType.kBrushless);
         turningMotorConfig = new SparkMaxConfig();
-        m_turningClosedLoopController = turningMotor.getClosedLoopController();
 
         turningMotorConfig.inverted(turningMotorReversed);
         turningMotorConfig.idleMode(IdleMode.kCoast);
-
-        turningMotorConfig.closedLoop.positionWrappingEnabled(true);
-        turningMotorConfig.closedLoop.positionWrappingInputRange(-Math.PI, Math.PI);
-        turningMotorConfig.closedLoop.p(0.7);
-        //turningMotorConfig.closedLoopRampRate(1);
 
         turningMotorConfig.encoder.positionConversionFactor(ModuleConstants.kTurningEncoderRot2Rad);
         turningMotorConfig.encoder.velocityConversionFactor(ModuleConstants.kTurningEncoderRPM2RadPerSec);
@@ -106,7 +95,6 @@ public class SwerveModule {
     public void resetEncoders() {
         driveMotor.setPosition(0);
         turningMotor.getEncoder().setPosition(getAbsoluteEncoderRad());
-        System.out.println("Encoders Resetados");
     }
 
     public SwerveModuleState getState() {
@@ -117,7 +105,7 @@ public class SwerveModule {
         return new SwerveModulePosition(getDrivePosition(), new Rotation2d(getTurningPosition()));
     }
 
-    public void setDesiredState(SwerveModuleState state, Rotation2d rotation2d) {
+    public void setDesiredState(SwerveModuleState state, Rotation2d rotation2d, Boolean plotar) {
         if (Math.abs(state.speedMetersPerSecond) < 0.001) {
             stop();
             return;
@@ -130,7 +118,11 @@ public class SwerveModule {
         SmartDashboard.putNumber("Turning", getTurningPosition());
         SmartDashboard.putNumber("Angle", state.angle.getRadians());
         
-        turningMotor.set(turningPidController.calculate(getTurningPosition(), state.angle.getRadians()));
+        turningMotorSpeed = turningPidController.calculate(getTurningPosition(), state.angle.getRadians());
+
+        SmartDashboard.putNumber("Turning Speed", turningMotorSpeed);
+        
+        turningMotor.set(turningMotorSpeed);
     }
 
     public void stop() {

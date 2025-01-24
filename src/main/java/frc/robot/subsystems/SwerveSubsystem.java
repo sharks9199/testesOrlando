@@ -19,6 +19,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import java.util.List;
@@ -164,8 +165,26 @@ public class SwerveSubsystem extends SubsystemBase {
         return path;
     }
 
+    public Command createPathFinding(Pose2d endPose){
+        PathConstraints constraints = new PathConstraints(
+            1.0, 0.5, 
+            Units.degreesToRadians(360), Units.degreesToRadians(540));
+
+        Command pathfindingCommand = AutoBuilder.pathfindToPose(
+        endPose,
+        constraints,
+        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+        );
+
+        return pathfindingCommand;
+    }
+
     public void followPath(PathPlannerPath path){
-        AutoBuilder.followPath(path).schedule();
+        
+    }
+
+    public void followPathFinding(Command path){
+        path.schedule();
     }
 
     public void zeroHeading() {
@@ -233,17 +252,17 @@ public class SwerveSubsystem extends SubsystemBase {
     public void setModuleStatesFromChassisSpeeds(ChassisSpeeds chassisSpeeds) { 
         SwerveModuleState[] desiredStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
             
-        frontLeft.setDesiredState(desiredStates[0], frontLeft.getModuleRotation2d());
-        frontRight.setDesiredState(desiredStates[1], frontRight.getModuleRotation2d());
-        backLeft.setDesiredState(desiredStates[2], backLeft.getModuleRotation2d());
-        backRight.setDesiredState(desiredStates[3], backRight.getModuleRotation2d()); 
+        frontLeft.setDesiredState(desiredStates[0], frontLeft.getModuleRotation2d(), false);
+        frontRight.setDesiredState(desiredStates[1], frontRight.getModuleRotation2d(), false);
+        backLeft.setDesiredState(desiredStates[2], backLeft.getModuleRotation2d(), false);
+        backRight.setDesiredState(desiredStates[3], backRight.getModuleRotation2d(), false); 
     }
 
     public void setModuleStates(SwerveModuleState[] desiredStates) { 
-        frontLeft.setDesiredState(desiredStates[0], frontLeft.getModuleRotation2d());
-        frontRight.setDesiredState(desiredStates[1], frontRight.getModuleRotation2d());
-        backLeft.setDesiredState(desiredStates[2], backLeft.getModuleRotation2d());
-        backRight.setDesiredState(desiredStates[3], backRight.getModuleRotation2d()); 
+        frontLeft.setDesiredState(desiredStates[0], frontLeft.getModuleRotation2d(), true);
+        frontRight.setDesiredState(desiredStates[1], frontRight.getModuleRotation2d(), false);
+        backLeft.setDesiredState(desiredStates[2], backLeft.getModuleRotation2d(), false);
+        backRight.setDesiredState(desiredStates[3], backRight.getModuleRotation2d(), false); 
     }
     
     public SwerveModuleState[] getSwerveModuleState() {

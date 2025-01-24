@@ -3,7 +3,9 @@ package frc.robot;
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import com.pathplanner.lib.auto.AutoBuilder;
     import com.pathplanner.lib.commands.PathPlannerAuto;
-    import edu.wpi.first.math.geometry.Pose2d;
+import com.pathplanner.lib.path.PathPlannerPath;
+
+import edu.wpi.first.math.geometry.Pose2d;
     import edu.wpi.first.math.geometry.Rotation2d;
     import edu.wpi.first.wpilibj.Joystick;
     import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -88,5 +90,13 @@ public class RobotContainer {
         }
     // ========================================================
 
+    public PathPlannerPath
+
+    Pose2d endPos = new Pose2d(1.28, 1.38, new Rotation2d(180));
+
+    System.out.println("Executado");
+
+    PathPlannerPath path = swerveSubsystem.createPath(endPos);
+    AutoBuilder.followPath(path).schedule();
 }
 
