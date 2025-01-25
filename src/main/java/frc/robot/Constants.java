@@ -1,5 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -86,6 +88,10 @@ public class Constants {
         public static final double kvVoltSecondsPerMeter = 0.8224;
         public static final double kaVoltSecondsSquaredPerMeter = 1.4512;
         public static final double kPDriveVel = 1.1949;
+    }
+
+    public static final class FieldPoses {
+        public static final Pose2d kCoralBlueRight = new Pose2d(1.28, 1.38, new Rotation2d(180));
     }
 
     public static final class AutoConstants {
