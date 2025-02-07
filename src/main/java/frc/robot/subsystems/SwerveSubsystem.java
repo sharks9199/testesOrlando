@@ -352,17 +352,5 @@ public class SwerveSubsystem extends SubsystemBase {
             }
         }
 
-        //SmartDashboard.putNumber("Front Left", frontLeft.getAbsoluteEncoderRad());
-        //SmartDashboard.putNumber("Front Right", frontRight.getAbsoluteEncoderRad());
-        //SmartDashboard.putNumber("Back Left", backLeft.getAbsoluteEncoderRad());
-        //SmartDashboard.putNumber("Back Right", backRight.getAbsoluteEncoderRad());
-
-        //SmartDashboard.putNumber("Pose X", getPoseEstimator().getX());
-        //SmartDashboard.putNumber("Pose Y", getPoseEstimator().getY());
-
-        //SmartDashboard.putNumber("Odo X", getPose().getX());
-        //SmartDashboard.putNumber("Odo Y", getPose().getY());
-        
-        //SmartDashboard.putNumber("Heading", getHeading());
     }
 }

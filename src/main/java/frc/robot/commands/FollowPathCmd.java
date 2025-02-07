@@ -22,6 +22,7 @@ public class FollowPathCmd extends Command {
     }
 
     //dan eu te amo ass:jj
+    
     @Override
     public void execute() {// Create a list of waypoints from poses. Each pose represents one waypoint.
         Pose2d endPos = new Pose2d(1.28, 1.38, new Rotation2d(180));

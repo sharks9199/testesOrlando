@@ -5,7 +5,6 @@ package frc.robot;
     import com.pathplanner.lib.commands.PathPlannerAuto;
     import com.pathplanner.lib.path.PathConstraints;
     import com.pathplanner.lib.path.PathPlannerPath;
-
     import edu.wpi.first.math.geometry.Pose2d;
     import edu.wpi.first.math.geometry.Rotation2d;
     import edu.wpi.first.math.util.Units;
@@ -17,9 +16,15 @@ package frc.robot;
     import edu.wpi.first.wpilibj2.command.button.JoystickButton;
     import frc.robot.Constants.FieldPoses;
     import frc.robot.Constants.OIConstants;
-    import frc.robot.commands.FollowPathCmd;
+import frc.robot.Constants.elevatorConstants;
+import frc.robot.Constants.intakeConstants;
+import frc.robot.commands.FollowPathCmd;
     import frc.robot.commands.SwerveJoystickCmd;
-    import frc.robot.subsystems.LimelightSubsystem;
+    import frc.robot.commands.Elevator.ElevatorPidCmd;
+import frc.robot.commands.Intake.IntakePidCmd;
+import frc.robot.subsystems.LimelightSubsystem;
+    import frc.robot.subsystems.IntakeSubsystem;
+    import frc.robot.subsystems.ElevatorSubsystem;
     import frc.robot.subsystems.SwerveSubsystem;
 // ============================================================================
 
@@ -29,6 +34,8 @@ public class RobotContainer {
 
     // ======================== INSTÂNCIA OS SUBSISTEMAS =========================
     private final static SwerveSubsystem swerveSubsystem = new SwerveSubsystem();
+    private final static ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
+    private final static IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
     private final static LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
     private final static Joystick Joystick1 = new Joystick(OIConstants.kDriverControllerPort);
     // ============================================================================
@@ -37,8 +44,10 @@ public class RobotContainer {
         // =========================== COMANDOS PADRÕES ===========================
         // Comando padrão swerve operado por joystick
         swerveSubsystem.setDefaultCommand(new SwerveJoystickCmd(
-                swerveSubsystem, limelightSubsystem, () -> -Joystick1.getY(), () -> -Joystick1.getX(),
-                () -> -OIConstants.getGyroAxis(Joystick1), () -> false));
+                swerveSubsystem, limelightSubsystem, () -> Joystick1.getY(), () -> Joystick1.getX(),
+                () -> OIConstants.getGyroAxis(Joystick1), () -> false));
+        elevatorSubsystem.setDefaultCommand(new ElevatorPidCmd(elevatorSubsystem, () -> Joystick1.getPOV()));
+        intakeSubsystem.setDefaultCommand(new IntakePidCmd(intakeSubsystem, () -> Joystick1.getPOV()));
         // ============================================================================
 
         // Atribui as funções para cada botão do Controle
@@ -79,7 +88,8 @@ public class RobotContainer {
 
     // ========== EXECUTA QUANDO O TELEOPERADO INICIAR ==========
     public void doWhenTeleopInit() {
-
+        elevatorConstants.elevatorSetpoint = elevatorSubsystem.getPosition();
+        intakeConstants.intakeSetpoint = intakeSubsystem.getPosition();
     }
     // =======================================================
 

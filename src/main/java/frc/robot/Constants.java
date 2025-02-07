@@ -36,15 +36,17 @@ public class Constants {
                 // Back Left 
                 // Back Right
 
-        public static final int kFrontLeftDriveMotorPort = 2;
-        public static final int kBackLeftDriveMotorPort = 8;
-        public static final int kFrontRightDriveMotorPort = 5;
-        public static final int kBackRightDriveMotorPort = 11;
+        public static final int kFrontLeftDriveMotorPort = 1;
+        public static final int kFrontRightDriveMotorPort = 3;
+        public static final int kBackLeftDriveMotorPort = 5;
+        public static final int kBackRightDriveMotorPort = 7;
 
-        public static final int kFrontLeftTurningMotorPort = 3;
-        public static final int kBackLeftTurningMotorPort = 9;
-        public static final int kFrontRightTurningMotorPort = 6;
-        public static final int kBackRightTurningMotorPort = 12;
+        public static final int kFrontLeftTurningMotorPort = 2;
+        public static final int kFrontRightTurningMotorPort = 4;
+        public static final int kBackLeftTurningMotorPort = 6;
+        public static final int kBackRightTurningMotorPort = 8;
+
+        public static final int kElevatorMotorPort = 8;
 
         public static final boolean kFrontLeftTurningEncoderReversed = true;
         public static final boolean kBackLeftTurningEncoderReversed = true;
@@ -56,10 +58,10 @@ public class Constants {
         public static final boolean kFrontRightDriveEncoderReversed = false;
         public static final boolean kBackRightDriveEncoderReversed = false;
 
-        public static final int kFrontLeftDriveAbsoluteEncoderPort = 1;
-        public static final int kBackLeftDriveAbsoluteEncoderPort = 7;
-        public static final int kFrontRightDriveAbsoluteEncoderPort = 4;
-        public static final int kBackRightDriveAbsoluteEncoderPort = 10;
+        public static final int kFrontLeftDriveAbsoluteEncoderPort = 9;
+        public static final int kFrontRightDriveAbsoluteEncoderPort = 10;
+        public static final int kBackLeftDriveAbsoluteEncoderPort = 11;
+        public static final int kBackRightDriveAbsoluteEncoderPort = 12;
 
         public static final boolean kFrontLeftDriveAbsoluteEncoderReversed = false;
         public static final boolean kBackLeftDriveAbsoluteEncoderReversed = false;
@@ -92,6 +94,28 @@ public class Constants {
 
     public static final class FieldPoses {
         public static final Pose2d kCoralBlueRight = new Pose2d(1.28, 1.38, new Rotation2d(180));
+    }
+
+    public static final class elevatorConstants {
+        public static final int elevatorMotorID = 13;
+        
+        public static final double L1Position = 180;
+        public static final double L2Position = 85;
+        public static final double L3Position = -8;
+        public static final double L4Position = 180;
+
+        public static final double elevatorMax = 200;
+        public static final double elevatorMin = 0;
+        public static double elevatorSetpoint = 0;
+    }
+
+    public static final class intakeConstants {
+        public static final int intakeMotorID = 14;
+        public static final int controlMotorID = 15;
+
+        public static final double intakeMax = 24.2;
+        public static final double intakeMin = 0;
+        public static double intakeSetpoint = 0;
     }
 
     public static final class AutoConstants {
