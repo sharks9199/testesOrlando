@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Radians;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -45,6 +46,7 @@ public class SwerveModule {
         
         driveMotorConfig = new TalonFXConfiguration();
         driveMotorConfig.Feedback.withSensorToMechanismRatio(0.9);
+        driveMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         driveMotor.getConfigurator().apply(driveMotorConfig);
 
         turningMotor = new SparkMax(turningMotorId, MotorType.kBrushless);

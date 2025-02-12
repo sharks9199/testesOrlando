@@ -25,16 +25,17 @@ public class FollowPathCmd extends Command {
     
     @Override
     public void execute() {// Create a list of waypoints from poses. Each pose represents one waypoint.
-        Pose2d endPos = new Pose2d(1.28, 1.38, new Rotation2d(180));
+        Pose2d endPos = new Pose2d(1, 0, new Rotation2d(0));
 
         System.out.println("Executado");
 
-        PathPlannerPath path = swerveSubsystem.createPath(endPos);
-        AutoBuilder.followPath(path).schedule();
+        swerveSubsystem.createPathFinding(endPos).schedule();
+        //AutoBuilder.followPath(path).schedule();
     }
     
     @Override
     public void end(boolean interrupted) {
+        System.out.println("Ended");
     }
 
 }

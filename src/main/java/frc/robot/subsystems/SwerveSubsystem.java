@@ -33,6 +33,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.config.PIDConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.LimelightHelpers;
 
 public class SwerveSubsystem extends SubsystemBase {
     NetworkTable table = NetworkTableInstance.getDefault().getTable("RobotPhysics");
@@ -82,12 +83,11 @@ public class SwerveSubsystem extends SubsystemBase {
     };
 
     DoublePublisher headingPublisher;
-
     NTSendableBuilder builder;
-    public NetworkTable m_table;
+    NetworkTable m_table;
+    boolean doRejectUpdate;
     
     public final static Pigeon2 gyro = new Pigeon2(22);
-
     public final LimelightSubsystem limelight = new LimelightSubsystem();
     private final Field2d m_field = new Field2d();
 
@@ -142,6 +142,8 @@ public class SwerveSubsystem extends SubsystemBase {
             } catch (Exception e) {
             }
         }).start();
+
+        limelight.setPipeline(1);
     }
 
     public PathPlannerPath createPath(Pose2d endPose){
@@ -176,10 +178,6 @@ public class SwerveSubsystem extends SubsystemBase {
         );
 
         return pathfindingCommand;
-    }
-
-    public void followPath(PathPlannerPath path){
-        
     }
 
     public void followPathFinding(Command path){
@@ -342,15 +340,12 @@ public class SwerveSubsystem extends SubsystemBase {
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));
         
-        //odometer.update(getRotation2d(),getSwerveModulePosition());
-        poseEstimator.update(getRotation2d(), getSwerveModulePosition());
-        
         if (limelight.getID() >= 0) {
-            poseEstimator.addVisionMeasurement(limelight.getMeasurement().pose, limelight.getMeasurement().timestampSeconds);
-            if (limelight.getPipeline() != 1) {
-                limelight.setPipeline(1);
+            if (limelight.getTA() > 0.5){
+                poseEstimator.addVisionMeasurement(limelight.getMeasurement().pose, limelight.getMeasurement().timestampSeconds);
             }
-        }
+        }     
+        poseEstimator.update(getRotation2d(), getSwerveModulePosition());
 
     }
 }

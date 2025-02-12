@@ -45,6 +45,10 @@ public class LimelightSubsystem extends SubsystemBase {
         LimelightHelpers.setPipelineIndex(LimelightID, pipeline);
     }
 
+    public double getTA(){
+        return LimelightHelpers.getTA(LimelightID);
+    }
+
     public double getTX(){
         return LimelightHelpers.getTX(LimelightID);
     }

@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.controller.PIDController;
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import edu.wpi.first.math.filter.SlewRateLimiter;
     import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -17,16 +18,18 @@ public class SwerveJoystickCmd extends Command {
     // =================== INSTANCIA OS SUBSISTEMAS E VARIAVEIS =================
     private final SwerveSubsystem swerveSubsystem;
     private final Supplier<Double> xSpdFunction, ySpdFunction, turningSpdFunction;
+    private final Supplier<Boolean> resetEncoderButton;
     private final SlewRateLimiter xLimiter, yLimiter, turningLimiter;
     // ============================================================================
 
     public SwerveJoystickCmd(SwerveSubsystem swerveSubsystem, LimelightSubsystem limelightSubsystem, Supplier<Double> xSpdFunction, 
-                Supplier<Double> ySpdFunction, Supplier<Double> turningSpdFunction, Supplier<Boolean> alignButton) {
+                Supplier<Double> ySpdFunction, Supplier<Double> turningSpdFunction, Supplier<Boolean> resetEncoderButton) {
         
         this.swerveSubsystem = swerveSubsystem;
         this.xSpdFunction = xSpdFunction;
         this.ySpdFunction = ySpdFunction;
         this.turningSpdFunction = turningSpdFunction;
+        this.resetEncoderButton = resetEncoderButton;
         this.xLimiter = new SlewRateLimiter(DriveConstants.kTeleDriveMaxAccelerationUnitsPerSecond);
         this.yLimiter = new SlewRateLimiter(DriveConstants.kTeleDriveMaxAccelerationUnitsPerSecond);
         this.turningLimiter = new SlewRateLimiter(DriveConstants.kTeleDriveMaxAngularAccelerationUnitsPerSecond);
@@ -38,6 +41,10 @@ public class SwerveJoystickCmd extends Command {
 
     @Override
     public void execute() {
+        if (resetEncoderButton.get()){
+            swerveSubsystem.resetSwerve();
+        }
+
         // 1. Coleta a posição do Joystick
         double xSpeed = xSpdFunction.get();
         double ySpeed = ySpdFunction.get();

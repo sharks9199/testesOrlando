@@ -14,15 +14,18 @@ package frc.robot;
     import edu.wpi.first.wpilibj2.command.Command;
     import edu.wpi.first.wpilibj2.command.InstantCommand;
     import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+    import edu.wpi.first.wpilibj2.command.button.POVButton;
     import frc.robot.Constants.FieldPoses;
     import frc.robot.Constants.OIConstants;
-import frc.robot.Constants.elevatorConstants;
-import frc.robot.Constants.intakeConstants;
+    import frc.robot.Constants.elevatorConstants;
+    import frc.robot.Constants.intakeConstants;
 import frc.robot.commands.FollowPathCmd;
-    import frc.robot.commands.SwerveJoystickCmd;
+import frc.robot.commands.SwerveJoystickCmd;
+    import frc.robot.commands.Autos.Autos;
+    import frc.robot.commands.Autos.CollectCmd;
     import frc.robot.commands.Elevator.ElevatorPidCmd;
-import frc.robot.commands.Intake.IntakePidCmd;
-import frc.robot.subsystems.LimelightSubsystem;
+    import frc.robot.commands.Intake.IntakePidCmd;
+    import frc.robot.subsystems.LimelightSubsystem;
     import frc.robot.subsystems.IntakeSubsystem;
     import frc.robot.subsystems.ElevatorSubsystem;
     import frc.robot.subsystems.SwerveSubsystem;
@@ -32,22 +35,29 @@ public class RobotContainer {
     // Cria o objeto para a escolha do autônomo
     SendableChooser<Command> AutoChooser = AutoBuilder.buildAutoChooser();
 
-    // ======================== INSTÂNCIA OS SUBSISTEMAS =========================
+    // ======================== INSTANCIA OS SUBSISTEMAS =========================
     private final static SwerveSubsystem swerveSubsystem = new SwerveSubsystem();
     private final static ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
     private final static IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
     private final static LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
     private final static Joystick Joystick1 = new Joystick(OIConstants.kDriverControllerPort);
+    private final static Joystick Joystick2 = new Joystick(OIConstants.kSecondDriverControllerPort);
     // ============================================================================
 
     public RobotContainer() {
         // =========================== COMANDOS PADRÕES ===========================
         // Comando padrão swerve operado por joystick
         swerveSubsystem.setDefaultCommand(new SwerveJoystickCmd(
-                swerveSubsystem, limelightSubsystem, () -> Joystick1.getY(), () -> Joystick1.getX(),
-                () -> OIConstants.getGyroAxis(Joystick1), () -> false));
-        elevatorSubsystem.setDefaultCommand(new ElevatorPidCmd(elevatorSubsystem, () -> Joystick1.getPOV()));
-        intakeSubsystem.setDefaultCommand(new IntakePidCmd(intakeSubsystem, () -> Joystick1.getPOV()));
+                swerveSubsystem, limelightSubsystem, () -> -Joystick1.getY(), () -> -Joystick1.getX(),
+                () -> -OIConstants.getGyroAxis(Joystick1), () -> Joystick1.getRawButton(OIConstants.kResetEncodersButtonIdx)));
+        
+        //Comando padrão para controle do Elevador
+        elevatorSubsystem.setDefaultCommand(new ElevatorPidCmd(elevatorSubsystem, () -> Joystick2.getPOV()));
+        
+        //Comando padrão para controle do Intake
+        intakeSubsystem.setDefaultCommand(new IntakePidCmd(intakeSubsystem, () -> Joystick2.getPOV(), 
+                () -> Joystick2.getRawButton(OIConstants.kIntakeInputButtonIdx) , () -> Joystick2.getRawButton(OIConstants.kIntakeOutputButtonIdx), 
+                () -> Joystick2.getRawButton(OIConstants.kHoodInputButtonIdx), () -> Joystick2.getRawButton(OIConstants.kHoodOutputButtonIdx)));
         // ============================================================================
 
         // Atribui as funções para cada botão do Controle
@@ -56,19 +66,35 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
         // =========================== CONTROLE DO SWERVE ===========================
-        // Resetar referência swerve
-        new JoystickButton(Joystick1, OIConstants.kResetEncodersButtonIdx)
-                .onTrue(new InstantCommand(() -> swerveSubsystem.resetSwerve()));
+
+        // Acionar Coleta Automatizada 
+        new JoystickButton(Joystick1, OIConstants.kCollectButtonIdx)
+                .toggleOnTrue(new CollectCmd(elevatorSubsystem, intakeSubsystem, () -> Joystick1.getRawButtonPressed(OIConstants.kCollectButtonIdx)));
+
+        // Presets para cada posição 
+        new POVButton(Joystick1, OIConstants.kL1ButtonIdx, 0)
+                .onTrue(Autos.L1Position(elevatorSubsystem, intakeSubsystem));
+        new POVButton(Joystick1,OIConstants.kL2ButtonIdx, 0)
+                .onTrue(Autos.L2Position(elevatorSubsystem, intakeSubsystem));
+        new POVButton(Joystick1,OIConstants.kL3ButtonIdx, 0)
+                .onTrue(Autos.L3Position(elevatorSubsystem, intakeSubsystem));
+        new POVButton(Joystick1,OIConstants.kL4ButtonIdx, 0)
+                .onTrue(Autos.L4Position(elevatorSubsystem, intakeSubsystem));
+        
         // ============================================================================
 
         SmartDashboard.putData("Pathfind to Pickup Pos", AutoBuilder.pathfindToPose(
-                FieldPoses.kCoralBlueRight,
+                FieldPoses.kCoralBlueLeft,
                 new PathConstraints(
                         1.0, 1.0,
                         Units.degreesToRadians(360), Units.degreesToRadians(540)),
                 0));
 
-        new JoystickButton(Joystick1, 4).onTrue(new FollowPathCmd(swerveSubsystem));
+        new JoystickButton(Joystick2, OIConstants.kIntakeOutputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setIntake(0)));
+        new JoystickButton(Joystick2, OIConstants.kIntakeInputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setIntake(0)));
+        new JoystickButton(Joystick2, OIConstants.kHoodOutputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setHood(0)));
+        new JoystickButton(Joystick2, OIConstants.kHoodInputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setHood(0)));
+        new JoystickButton(Joystick1, OIConstants.kCollectCoralButtonIdx).onTrue(new FollowPathCmd(swerveSubsystem));
     };
 
     // ========== EXECUTA QUANDO O ROBÔ INICIAR ==========
@@ -92,7 +118,7 @@ public class RobotContainer {
         intakeConstants.intakeSetpoint = intakeSubsystem.getPosition();
     }
     // =======================================================
-
+    
     // ========== TRAJECTORY FOLLOWER ==========
     public void followTrajectory(Pose2d endPose) {
         PathPlannerPath path = swerveSubsystem.createPath(endPose);

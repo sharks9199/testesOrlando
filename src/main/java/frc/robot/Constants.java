@@ -53,10 +53,10 @@ public class Constants {
         public static final boolean kFrontRightTurningEncoderReversed = true;
         public static final boolean kBackRightTurningEncoderReversed = true;
 
-        public static final boolean kFrontLeftDriveEncoderReversed = false;
-        public static final boolean kBackLeftDriveEncoderReversed = false;
-        public static final boolean kFrontRightDriveEncoderReversed = false;
-        public static final boolean kBackRightDriveEncoderReversed = false;
+        public static final boolean kFrontLeftDriveEncoderReversed = true;
+        public static final boolean kBackLeftDriveEncoderReversed = true;
+        public static final boolean kFrontRightDriveEncoderReversed = true;
+        public static final boolean kBackRightDriveEncoderReversed = true;
 
         public static final int kFrontLeftDriveAbsoluteEncoderPort = 9;
         public static final int kFrontRightDriveAbsoluteEncoderPort = 10;
@@ -93,26 +93,39 @@ public class Constants {
     }
 
     public static final class FieldPoses {
+        public static final Pose2d kCoralBlueLeft = new Pose2d(1, 7, new Rotation2d(-53));
         public static final Pose2d kCoralBlueRight = new Pose2d(1.28, 1.38, new Rotation2d(180));
     }
 
     public static final class elevatorConstants {
         public static final int elevatorMotorID = 13;
         
-        public static final double L1Position = 180;
-        public static final double L2Position = 85;
-        public static final double L3Position = -8;
-        public static final double L4Position = 180;
+        public static final double CollectPosition = 4.1;
+        public static final double L1Position = 4.1;
+        public static final double L2Position = 38;
+        public static final double L3Position = 88;
+        public static final double L4Position = 88;
 
-        public static final double elevatorMax = 200;
-        public static final double elevatorMin = 0;
+        public static final double elevatorMax = 88;
+        public static final double elevatorMin = 2;
         public static double elevatorSetpoint = 0;
     }
 
     public static final class intakeConstants {
         public static final int intakeMotorID = 14;
         public static final int controlMotorID = 15;
+        public static final int hoodMotorID = 16;
+        public static final int CANrangeFirstID = 20;
+        public static final int CANrangeSecondID = 21;
 
+        public static final double kCANrangeDetectionLimit = 0.1;
+        public static final double CollectPosition = 1;
+        public static final double L1Position = 1.33;
+        public static final double L2Position = 1.33;
+        public static final double L3Position = 2.3;
+        public static final double L4Position = 50;
+
+        public static final double intakeMaxSpeed = 0.4;
         public static final double intakeMax = 24.2;
         public static final double intakeMin = 0;
         public static double intakeSetpoint = 0;
@@ -149,60 +162,47 @@ public class Constants {
     }
     
     public static final class LimelightConstants {
-        public static String LimelightID = "limelight-main"; 
+        public static String LimelightID = "limelight-coral"; 
     }
 
     public static final class XboxConstants {
         public static final int kResetEncodersButtonIdx = 3;
         
-        public static final int kResetSpeakerBlueIdx = 7;
-        public static final int kResetSpeakerRedIdx = 8;
-
-        public static final int kCollectNoteIntakeIdx = 5;
-        public static final int kShootNoteIntakeIdx = 6;
-
-        public static final int kRaiseShooterIdx = 9;
-        public static final int kLowerShoterIdx = 10;
     }
 
     public static final class LogitechConstants {
         public static final int kResetEncodersButtonIdx = 1;
 
-        public static final int kResetSpeakerBlueIdx = 9;
-        public static final int kResetSpeakerRedIdx = 10;
-
-        public static final int kCollectNoteIntakeIdx = 5;
-        public static final int kShootNoteIntakeIdx = 6;
-
-        public static final int kRaiseShooterIdx = 11;
-        public static final int kLowerShoterIdx = 12;
     }
 
     public static final class OIConstants {
         public static Boolean isXbox = DriverStation.getJoystickIsXbox(0);
 
         public static double getGyroAxis(Joystick joystick){
-            double gyro = isXbox ? joystick.getRawAxis(4) : joystick.getZ();
-            return gyro;
+            return isXbox ? joystick.getRawAxis(4) : joystick.getZ();
         }
 
         // ============================ BOTÕES DO CONTROLE ===========================
         //Controle Swerve
         public static final int kResetEncodersButtonIdx = isXbox ? XboxConstants.kResetEncodersButtonIdx : LogitechConstants.kResetEncodersButtonIdx;
-        public static final int kResetSpeakerBlueIdx = isXbox ? XboxConstants.kResetSpeakerBlueIdx : LogitechConstants.kResetSpeakerBlueIdx;
-        public static final int kResetSpeakerRedIdx = isXbox ? XboxConstants.kResetSpeakerRedIdx : LogitechConstants.kResetSpeakerRedIdx;
-        
-        public static final int kCollectNoteIntakeIdx = isXbox ? XboxConstants.kCollectNoteIntakeIdx : LogitechConstants.kCollectNoteIntakeIdx;
-        public static final int kShootNoteIntakeIdx = isXbox ? XboxConstants.kShootNoteIntakeIdx : LogitechConstants.kShootNoteIntakeIdx;
 
         //Controle Garra
-        public static final int kCollectNotePresetButtonIdx = 2;
-        public static final int kShootNotePresetButtonIdx = 3;
         public static final int kIntakeInputButtonIdx = 5;
         public static final int kIntakeOutputButtonIdx = 6;
+        public static final int kHoodInputButtonIdx = 7;
+        public static final int kHoodOutputButtonIdx = 8;
+        public static final int kRaiseIntakeButtonIdx = 90;
+        public static final int kLowerIntakeButtonIdx = 270;
 
-        public static final int kRaiseShooterIdx = isXbox ? XboxConstants.kRaiseShooterIdx : LogitechConstants.kRaiseShooterIdx;
-        public static final int kLowerShoterIdx = isXbox ? XboxConstants.kLowerShoterIdx : LogitechConstants.kLowerShoterIdx;
+        public static final int kRaiseElevatorButtonIdx = 0;
+        public static final int kLowerElevatorButtonIdx = 180;
+
+        public static final int kCollectCoralButtonIdx = 3;
+        public static final int kCollectButtonIdx = 2;
+        public static final int kL1ButtonIdx = 180;
+        public static final int kL2ButtonIdx = 90;
+        public static final int kL3ButtonIdx = 270;
+        public static final int kL4ButtonIdx = 0;
         // ============================================================================
 
         public static final int kDriverControllerPort = 0;
@@ -211,10 +211,6 @@ public class Constants {
         public static final int kDriverXAxis = 0;
         public static final int kDriverYAxis = 1;
         public static final int kDriverRotAxis = 2;
-
-        public static final int kSpeakerAlignButtonIdx = 7;
-        public static final int kAMPAlignButtonIdx = 8;
-        public static final int kSourceAlignButtonIdx = 5;
         
         public static final double kDeadband = 0.05;   
 
