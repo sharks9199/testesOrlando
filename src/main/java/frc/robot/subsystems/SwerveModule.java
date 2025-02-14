@@ -94,7 +94,7 @@ public class SwerveModule {
     }
 
     public void resetEncoders() {
-        driveMotor.setPosition(0);
+        //driveMotor.setPosition(0);
         turningMotor.getEncoder().setPosition(getAbsoluteEncoderRad());
     }
 

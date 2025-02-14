@@ -93,7 +93,8 @@ public class Constants {
     }
 
     public static final class FieldPoses {
-        public static final Pose2d kCoralBlueLeft = new Pose2d(1, 7, new Rotation2d(-53));
+        public static final Pose2d kCoralBlueAlignLeft = new Pose2d(1.25, 6.90, new Rotation2d(-53));
+        public static final Pose2d kCoralBlueLeft = new Pose2d(1.05, 7.10, new Rotation2d(-53));
         public static final Pose2d kCoralBlueRight = new Pose2d(1.28, 1.38, new Rotation2d(180));
     }
 

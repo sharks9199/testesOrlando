@@ -1,26 +1,34 @@
 package frc.robot;
 
+import java.text.FieldPosition;
+import java.time.Instant;
+import java.util.List;
+
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import com.pathplanner.lib.auto.AutoBuilder;
     import com.pathplanner.lib.commands.PathPlannerAuto;
-    import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
     import com.pathplanner.lib.path.PathPlannerPath;
-    import edu.wpi.first.math.geometry.Pose2d;
+import com.pathplanner.lib.path.Waypoint;
+
+import edu.wpi.first.math.geometry.Pose2d;
     import edu.wpi.first.math.geometry.Rotation2d;
-    import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
     import edu.wpi.first.wpilibj.Joystick;
     import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
     import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
     import edu.wpi.first.wpilibj2.command.Command;
-    import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
     import edu.wpi.first.wpilibj2.command.button.JoystickButton;
     import edu.wpi.first.wpilibj2.command.button.POVButton;
     import frc.robot.Constants.FieldPoses;
     import frc.robot.Constants.OIConstants;
     import frc.robot.Constants.elevatorConstants;
     import frc.robot.Constants.intakeConstants;
-import frc.robot.commands.FollowPathCmd;
-import frc.robot.commands.SwerveJoystickCmd;
+    import frc.robot.commands.SwerveJoystickCmd;
     import frc.robot.commands.Autos.Autos;
     import frc.robot.commands.Autos.CollectCmd;
     import frc.robot.commands.Elevator.ElevatorPidCmd;
@@ -34,7 +42,7 @@ import frc.robot.commands.SwerveJoystickCmd;
 public class RobotContainer {
     // Cria o objeto para a escolha do autônomo
     SendableChooser<Command> AutoChooser = AutoBuilder.buildAutoChooser();
-
+    
     // ======================== INSTANCIA OS SUBSISTEMAS =========================
     private final static SwerveSubsystem swerveSubsystem = new SwerveSubsystem();
     private final static ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
@@ -42,6 +50,7 @@ public class RobotContainer {
     private final static LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
     private final static Joystick Joystick1 = new Joystick(OIConstants.kDriverControllerPort);
     private final static Joystick Joystick2 = new Joystick(OIConstants.kSecondDriverControllerPort);
+    PathConstraints constraints = new PathConstraints(0.5, 0.5, Units.degreesToRadians(360), Units.degreesToRadians(540));
     // ============================================================================
 
     public RobotContainer() {
@@ -83,18 +92,36 @@ public class RobotContainer {
         
         // ============================================================================
 
-        SmartDashboard.putData("Pathfind to Pickup Pos", AutoBuilder.pathfindToPose(
-                FieldPoses.kCoralBlueLeft,
-                new PathConstraints(
-                        1.0, 1.0,
-                        Units.degreesToRadians(360), Units.degreesToRadians(540)),
-                0));
-
         new JoystickButton(Joystick2, OIConstants.kIntakeOutputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setIntake(0)));
         new JoystickButton(Joystick2, OIConstants.kIntakeInputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setIntake(0)));
         new JoystickButton(Joystick2, OIConstants.kHoodOutputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setHood(0)));
         new JoystickButton(Joystick2, OIConstants.kHoodInputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setHood(0)));
-        new JoystickButton(Joystick1, OIConstants.kCollectCoralButtonIdx).onTrue(new FollowPathCmd(swerveSubsystem));
+
+        new JoystickButton(Joystick1, OIConstants.kCollectCoralButtonIdx).whileTrue(Commands.runOnce(() -> {
+            Pose2d currentPose = swerveSubsystem.getPoseEstimator();
+            
+            System.out.println("Oi");
+
+            // The rotation component in these poses represents the direction of travel
+            Pose2d startPos = new Pose2d(currentPose.getTranslation(), new Rotation2d());
+            Pose2d endPos = FieldPoses.kCoralBlueLeft;
+      
+            List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(startPos, FieldPoses.kCoralBlueAlignLeft, endPos);
+            PathPlannerPath path = new PathPlannerPath(
+              waypoints, 
+              new PathConstraints(
+                2.0, 1.0, 
+                Units.degreesToRadians(360), Units.degreesToRadians(540)
+              ),
+              null, // Ideal starting state can be null for on-the-fly paths
+              new GoalEndState(0.0, new Rotation2d(-1.0))
+            );
+      
+            // Prevent this path from being flipped on the red alliance, since the given positions are already correct
+            path.preventFlipping = true;
+      
+            AutoBuilder.followPath(path).schedule();
+          }));
     };
 
     // ========== EXECUTA QUANDO O ROBÔ INICIAR ==========
@@ -120,9 +147,25 @@ public class RobotContainer {
     // =======================================================
     
     // ========== TRAJECTORY FOLLOWER ==========
-    public void followTrajectory(Pose2d endPose) {
-        PathPlannerPath path = swerveSubsystem.createPath(endPose);
-        AutoBuilder.followPath(path).schedule();
+    public Command followTrajectory(Pose2d endPose) {
+        Pose2d currentPose = swerveSubsystem.getPoseEstimator();
+
+        System.out.println("Oi");
+
+        // The rotation component in these poses represents the direction of travel
+        Pose2d startPos = new Pose2d(currentPose.getTranslation(), new Rotation2d());
+        Pose2d endPos = new Pose2d(currentPose.getTranslation().plus(new Translation2d(1.0, 0.0)), new Rotation2d());
+
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(startPos, endPos);
+        PathPlannerPath path = new PathPlannerPath(
+                waypoints,
+                new PathConstraints(
+                        1.0, 1.0,
+                        Units.degreesToRadians(360), Units.degreesToRadians(540)),
+                null, // Ideal starting state can be null for on-the-fly paths
+                new GoalEndState(0.0, currentPose.getRotation()));
+
+        return AutoBuilder.followPath(path);
     }
     // =======================================================
 

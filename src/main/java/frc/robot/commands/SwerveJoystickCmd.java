@@ -1,6 +1,5 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.controller.PIDController;
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import edu.wpi.first.math.filter.SlewRateLimiter;
     import edu.wpi.first.math.kinematics.ChassisSpeeds;

@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
+import java.util.List;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
@@ -18,11 +20,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import java.util.List;
-
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
@@ -33,7 +31,6 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.config.PIDConstants;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.LimelightHelpers;
 
 public class SwerveSubsystem extends SubsystemBase {
     NetworkTable table = NetworkTableInstance.getDefault().getTable("RobotPhysics");
@@ -95,7 +92,7 @@ public class SwerveSubsystem extends SubsystemBase {
     
     public SwerveSubsystem() {
         RobotConfig config;
-
+        
         // Do this in either robot or subsystem init
         SmartDashboard.putData("Field", m_field);
         poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 1));
@@ -109,7 +106,7 @@ public class SwerveSubsystem extends SubsystemBase {
         AutoBuilder.configure(
                 this::getPoseEstimator, // Robot pose supplier
                 this::resetPoseEstimator, // Method to reset odometry (will be called if your auto has a starting pose)
-                this::getChassisRelativeSpeed, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+                this::getChassisSpeed, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
                 (speeds, feedforwards) -> driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
                 new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
                     new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
@@ -146,42 +143,19 @@ public class SwerveSubsystem extends SubsystemBase {
         limelight.setPipeline(1);
     }
 
-    public PathPlannerPath createPath(Pose2d endPose){
-        Pose2d startPos = new Pose2d(getPoseEstimator().getTranslation(), getPoseEstimator().getRotation());
-
-        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(startPos, endPose);
+    public PathPlannerPath createPath(Pose2d currentPose, Pose2d endPose){
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(currentPose, endPose);
 
         PathPlannerPath path = new PathPlannerPath(
-            waypoints, 
-            new PathConstraints(
-                1.0, 0.5, 
-                Units.degreesToRadians(360), Units.degreesToRadians(540)
-            ),
-            null, 
-            new GoalEndState(0.0, endPose.getRotation())
-        );
+                waypoints,
+                new PathConstraints(
+                0.5, 0.3, 
+                Units.degreesToRadians(360), Units.degreesToRadians(540)),
+                null, // Ideal starting state can be null for on-the-fly paths
+                new GoalEndState(0.0, currentPose.getRotation()));
 
-        path.preventFlipping = true;
         System.out.println("Path Created!");
         return path;
-    }
-
-    public Command createPathFinding(Pose2d endPose){
-        PathConstraints constraints = new PathConstraints(
-            1.0, 0.5, 
-            Units.degreesToRadians(360), Units.degreesToRadians(540));
-
-        Command pathfindingCommand = AutoBuilder.pathfindToPose(
-        endPose,
-        constraints,
-        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
-        );
-
-        return pathfindingCommand;
-    }
-
-    public void followPathFinding(Command path){
-        path.schedule();
     }
 
     public void zeroHeading() {
@@ -205,9 +179,8 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public Pose2d getPoseEstimator() {
-        Pose2d pose2 = poseEstimator.getEstimatedPosition();
-        Pose2d tranlatedPose =  new Pose2d(pose2.getX(), pose2.getY(), pose2.getRotation());
-        return tranlatedPose;
+        Pose2d pose = poseEstimator.getEstimatedPosition();
+        return pose;
     }
 
     public void resetPoseEstimator(Pose2d pose) {
@@ -231,7 +204,6 @@ public class SwerveSubsystem extends SubsystemBase {
     public void resetSwerve(){
         zeroHeading();
         resetAllEncoders();
-
         resetPoseEstimator(new Pose2d());
     }
 
@@ -344,8 +316,8 @@ public class SwerveSubsystem extends SubsystemBase {
             if (limelight.getTA() > 0.5){
                 poseEstimator.addVisionMeasurement(limelight.getMeasurement().pose, limelight.getMeasurement().timestampSeconds);
             }
-        }     
-        poseEstimator.update(getRotation2d(), getSwerveModulePosition());
+        }  
 
+        poseEstimator.update(getRotation2d(), getSwerveModulePosition());
     }
 }
