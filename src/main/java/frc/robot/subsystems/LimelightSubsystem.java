@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 import frc.robot.Constants.LimelightConstants;
 import frc.robot.LimelightHelpers.PoseEstimate;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
@@ -15,8 +16,9 @@ public class LimelightSubsystem extends SubsystemBase {
         return LimelightHelpers.getFiducialID(LimelightID);
     }
 
-    public PoseEstimate getMeasurement(){
-        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue(LimelightID);
+    public PoseEstimate getMeasurement(double angle){
+        LimelightHelpers.SetRobotOrientation(LimelightID, angle, 0.0, 0.0, 0.0, 0.0, 0.0);
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LimelightID);
 
         return limelightMeasurement;
     }
@@ -58,14 +60,6 @@ public class LimelightSubsystem extends SubsystemBase {
         return LimelightHelpers.getTY(LimelightID);
     }
 
-    public double getTZ(){
-        return LimelightHelpers.getTZ(LimelightID);
-    }
-
-    public double getRY(){
-        return LimelightHelpers.getRY(LimelightID);
-    }
-
     public boolean detecting(){
         return detecting;
     }
@@ -93,4 +87,5 @@ public class LimelightSubsystem extends SubsystemBase {
         }
 
     }
+
 }

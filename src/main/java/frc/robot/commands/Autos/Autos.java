@@ -3,12 +3,22 @@ package frc.robot.commands.Autos;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.elevatorConstants;
 import frc.robot.Constants.intakeConstants;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class Autos {
+    public static Command Shoot(IntakeSubsystem intakeSubsystem){
+        return Commands.sequence(
+            new InstantCommand(()-> intakeSubsystem.setIntake(intakeSubsystem.getPosition() < 10 ? 0.3 : -0.3)),
+            new WaitCommand(1),
+            new InstantCommand(()-> intakeSubsystem.setIntake(0))
+            
+            );
+    }
+
     public static Command L1Position(ElevatorSubsystem elevatorSubsystem, IntakeSubsystem intakeSubsystem){
         return Commands.sequence(
             new InstantCommand(()-> elevatorSubsystem.changeSetpoint(elevatorConstants.L1Position)),
@@ -32,7 +42,7 @@ public class Autos {
 
     public static Command L4Position(ElevatorSubsystem elevatorSubsystem, IntakeSubsystem intakeSubsystem){
         return Commands.sequence(
-            new InstantCommand(()-> intakeSubsystem.changeSetpoint(16.1)),
+            new InstantCommand(()-> intakeSubsystem.changeSetpoint(intakeConstants.L4Position)),
             new InstantCommand(()-> elevatorSubsystem.changeSetpoint(elevatorConstants.L4Position))
             );
     }

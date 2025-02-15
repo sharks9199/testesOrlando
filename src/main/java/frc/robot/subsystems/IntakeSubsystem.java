@@ -54,7 +54,6 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void setPlanetary(double speed){
         speed = Math.min(Math.max(speed, -0.2), intakeConstants.intakeMaxSpeed);
-        SmartDashboard.putNumber("Intake Speed", speed);
 
         intakeMotor.set(speed);
     }
@@ -73,6 +72,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        SmartDashboard.putNumber("Intake Speed", controlMotor.getEncoder().getVelocity());
     }
 
 }

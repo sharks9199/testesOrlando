@@ -3,7 +3,6 @@ package frc.robot.commands.Autos;
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import edu.wpi.first.math.geometry.Pose2d;
     import edu.wpi.first.math.geometry.Translation2d;
-    import edu.wpi.first.wpilibj.Joystick;
     import edu.wpi.first.wpilibj2.command.Command;
     import com.pathplanner.lib.auto.AutoBuilder;
     import com.pathplanner.lib.path.PathPlannerPath;
@@ -16,9 +15,6 @@ public class AutoScoreCmd extends Command {
     private final SwerveSubsystem swerveSubsystem;
 
     private Command command;
-    private Pose2d alignPose;
-    private Pose2d endPose;
-
     // ============================================================================
 
     public AutoScoreCmd(SwerveSubsystem swerveSubsystem) {

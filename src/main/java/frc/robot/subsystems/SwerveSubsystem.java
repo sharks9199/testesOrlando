@@ -34,6 +34,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.FieldPoses;
+import frc.robot.LimelightHelpers;
 
 public class SwerveSubsystem extends SubsystemBase {
     NetworkTable table = NetworkTableInstance.getDefault().getTable("RobotPhysics");
@@ -328,9 +329,11 @@ public class SwerveSubsystem extends SubsystemBase {
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));
         
-        if (limelight.detecting() && limelight.getTA() > 1.5) {
-                poseEstimator.addVisionMeasurement(limelight.getMeasurement().pose, limelight.getMeasurement().timestampSeconds);
-        }  
+        if (limelight.getID() > 0 && limelight.getTA() > 1) {
+                LimelightHelpers.PoseEstimate measurement = limelight.getMeasurement(getAngle());
+
+                poseEstimator.addVisionMeasurement(measurement.pose, measurement.timestampSeconds);
+            }  
 
         poseEstimator.update(getRotation2d(), getSwerveModulePosition());
     }

@@ -4,8 +4,10 @@ import java.util.List;
 
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import com.pathplanner.lib.auto.AutoBuilder;
-    import com.pathplanner.lib.commands.PathPlannerAuto;
-    import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.events.EventTrigger;
+import com.pathplanner.lib.path.GoalEndState;
     import com.pathplanner.lib.path.PathConstraints;
     import com.pathplanner.lib.path.PathPlannerPath;
     import com.pathplanner.lib.path.Waypoint;
@@ -21,14 +23,15 @@ import java.util.List;
     import edu.wpi.first.wpilibj2.command.InstantCommand;
     import edu.wpi.first.wpilibj2.command.button.JoystickButton;
     import edu.wpi.first.wpilibj2.command.button.POVButton;
-    import frc.robot.Constants.FieldPoses;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.FieldPoses;
     import frc.robot.Constants.OIConstants;
     import frc.robot.Constants.elevatorConstants;
     import frc.robot.Constants.intakeConstants;
     import frc.robot.commands.SwerveJoystickCmd;
-import frc.robot.commands.Autos.AutoCollectCmd;
-import frc.robot.commands.Autos.AutoScoreCmd;
-import frc.robot.commands.Autos.Autos;
+    import frc.robot.commands.Autos.AutoCollectCmd;
+    import frc.robot.commands.Autos.AutoScoreCmd;
+    import frc.robot.commands.Autos.Autos;
     import frc.robot.commands.Autos.CollectCmd;
     import frc.robot.commands.Elevator.ElevatorPidCmd;
     import frc.robot.commands.Intake.IntakePidCmd;
@@ -68,6 +71,11 @@ public class RobotContainer {
                 () -> Joystick2.getRawButton(OIConstants.kHoodInputButtonIdx), () -> Joystick2.getRawButton(OIConstants.kHoodOutputButtonIdx)));
         // ============================================================================
 
+        NamedCommands.registerCommand("Shoot", Autos.Shoot(intakeSubsystem));
+
+        new EventTrigger("L3Position").onTrue(Autos.L3Position(elevatorSubsystem, intakeSubsystem));
+        new EventTrigger("L4Position").onTrue(Autos.L4Position(elevatorSubsystem, intakeSubsystem));
+        
         // Atribui as funções para cada botão do Controle
         configureButtonBindings();
     }
@@ -113,7 +121,6 @@ public class RobotContainer {
 
     // ========== EXECUTA QUANDO O TELEOPERADO INICIAR ==========
     public void doWhenAutoInit() {
-        swerveSubsystem.resetPoseEstimator(new Pose2d(0, 0, new Rotation2d()));
         LoadAutonomousChoices();
     }
     // =======================================================
@@ -153,7 +160,9 @@ public class RobotContainer {
     public void LoadAutonomousChoices() {
         // Define a opção padrão
         AutoChooser.setDefaultOption("Null", null);
-        AutoChooser.addOption("Teste", new PathPlannerAuto("Auto"));
+
+        PathPlannerAuto autoBL = new PathPlannerAuto("Auto BL");
+        AutoChooser.addOption("Teste", autoBL.beforeStarting(AutoBuilder.pathfindToPose(autoBL.getStartingPose(), AutoConstants.constraints)));
 
         // Coloca no ShuffleBoard a janela para escolher o Autônomo
         SmartDashboard.putData("Autonomo", AutoChooser);

@@ -144,7 +144,7 @@ public class Constants {
         public static final double L1Position = 3.02;
         public static final double L2Position = 1.33;
         public static final double L3Position = 2.3;
-        public static final double L4Position = 50;
+        public static final double L4Position = 17.4;
 
         public static final double intakeMaxSpeed = 0.4;
         public static final double intakeMax = 24.2;
@@ -153,7 +153,7 @@ public class Constants {
     }
 
     public static final class AutoConstants {
-        public static PathConstraints constraints = new PathConstraints(3.0, 1.3, 
+        public static PathConstraints constraints = new PathConstraints(3.0, 0.5, 
         Units.degreesToRadians(360), Units.degreesToRadians(540));
 
 
