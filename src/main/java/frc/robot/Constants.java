@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.pathplanner.lib.path.PathConstraints;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -93,9 +95,27 @@ public class Constants {
     }
 
     public static final class FieldPoses {
-        public static final Pose2d kCoralBlueAlignLeft = new Pose2d(1.25, 6.90, new Rotation2d(-53));
-        public static final Pose2d kCoralBlueLeft = new Pose2d(1.05, 7.10, new Rotation2d(-53));
-        public static final Pose2d kCoralBlueRight = new Pose2d(1.28, 1.38, new Rotation2d(180));
+        public static final Pose2d kCoralBlueAlignLeft = new Pose2d(1.25, 6.90, new Rotation2d(-1));
+        public static final Pose2d kCoralBlueLeft = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        
+        public static final Pose2d kCoralBlueAlignRight = new Pose2d(1.33, 1.33, new Rotation2d(1));
+        public static final Pose2d kCoralBlueRight = new Pose2d(1.06, 0.96, new Rotation2d(1));
+    
+        // public static final Pose2d kGrid1 = new Pose2d(, , new Rotation2d(-1.14));
+        // public static final Pose2d kGrid2 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        // public static final Pose2d kGrid3 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        // public static final Pose2d kGrid4 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        // public static final Pose2d kGrid5 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        // public static final Pose2d kGrid6 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        // public static final Pose2d kGrid7 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        // public static final Pose2d kGrid8 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        // public static final Pose2d kGrid9 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        // public static final Pose2d kGrid10 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
+        public static final Pose2d kReef6 = new Pose2d(3.53, 5.36, new Rotation2d(-1));
+        public static final Pose2d kGrid11 = new Pose2d(3.86, 5.26, new Rotation2d(-1));
+        public static final Pose2d kGrid12 = new Pose2d(3.63, 5.03, new Rotation2d(-1));
+
+        public static final Pose2d[] gridPoses = {kGrid11, kGrid12};
     }
 
     public static final class elevatorConstants {
@@ -121,7 +141,7 @@ public class Constants {
 
         public static final double kCANrangeDetectionLimit = 0.1;
         public static final double CollectPosition = 1;
-        public static final double L1Position = 1.33;
+        public static final double L1Position = 3.02;
         public static final double L2Position = 1.33;
         public static final double L3Position = 2.3;
         public static final double L4Position = 50;
@@ -133,37 +153,15 @@ public class Constants {
     }
 
     public static final class AutoConstants {
-        public static final double kMaxSpeedMetersPerSecond = DriveConstants.kPhysicalMaxSpeedMetersPerSecond / 1;
-        public static final double kMaxAngularSpeedRadiansPerSecond = //
-                DriveConstants.kPhysicalMaxAngularSpeedRadiansPerSecond / 10.0;
-        public static final double kMaxAccelerationMetersPerSecondSquared = 5.0;
-        public static final double kMaxAngularAccelerationRadiansPerSecondSquared = Math.PI / 4.0;
-        public static final double kPXController = 1.5;
-        public static final double kPYController = 1.5;
-        public static final double kPThetaController = 6.0;
-        public static final double kSpeedLimiter = 4;
+        public static PathConstraints constraints = new PathConstraints(3.0, 1.3, 
+        Units.degreesToRadians(360), Units.degreesToRadians(540));
 
-        public static final double kChargeStationXSpeed = 1;
-        public static final double kPChargeStation = 0.04;
 
-        public static final double kPLimelightAlignY = 0.05;
-        public static final double kPLimelightAlignAngular = 0.1;
-
-        public static final double kPOVSpeed = 1.5;
-        public static final int kPOVForwardAngle = 0;
-        public static final int kPOVBackwardAngle = 180;
-        public static final int kPOVRightAngle = 270;
-        public static final int kPOVLeftAngle = 90;
-        public static final double kPMovePOV = 0.0000001;
-
-        public static final TrapezoidProfile.Constraints kThetaControllerConstraints = //
-                new TrapezoidProfile.Constraints(
-                        kMaxAngularSpeedRadiansPerSecond,
-                        kMaxAngularAccelerationRadiansPerSecondSquared);
     }
     
     public static final class LimelightConstants {
-        public static String LimelightID = "limelight-coral"; 
+        public static String LimelightCoral = "limelight-coral"; 
+        public static String LimelightReef = "limelight-reef"; 
     }
 
     public static final class XboxConstants {
@@ -199,6 +197,7 @@ public class Constants {
         public static final int kLowerElevatorButtonIdx = 180;
 
         public static final int kCollectCoralButtonIdx = 3;
+        public static final int kScoreCoralButtonIdx = 4;
         public static final int kCollectButtonIdx = 2;
         public static final int kL1ButtonIdx = 180;
         public static final int kL2ButtonIdx = 90;

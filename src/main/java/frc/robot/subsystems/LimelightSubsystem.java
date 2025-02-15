@@ -8,7 +8,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public class LimelightSubsystem extends SubsystemBase {
-    public static String LimelightID = LimelightConstants.LimelightID; 
+    public static String LimelightID = LimelightConstants.LimelightCoral;
+    private boolean detecting = false;
     
     public double getID() {
         return LimelightHelpers.getFiducialID(LimelightID);
@@ -65,7 +66,31 @@ public class LimelightSubsystem extends SubsystemBase {
         return LimelightHelpers.getRY(LimelightID);
     }
 
+    public boolean detecting(){
+        return detecting;
+    }
+
     @Override
     public void periodic() {
+        if(getID() < 1){
+            LimelightID = LimelightConstants.LimelightReef;
+            if(getID() < 1){
+                LimelightID = LimelightConstants.LimelightCoral;
+            }
+        }
+
+        if(getID() > 0){
+            if(LimelightID == LimelightConstants.LimelightReef){
+                detecting = true;
+            }
+
+            if(LimelightID == LimelightConstants.LimelightCoral && getTA() > 1.5){
+                detecting = true;
+            }
+
+        } else {
+            detecting = false;
+        }
+
     }
 }

@@ -30,7 +30,10 @@ import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.config.PIDConstants;
+
+import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.FieldPoses;
 
 public class SwerveSubsystem extends SubsystemBase {
     NetworkTable table = NetworkTableInstance.getDefault().getTable("RobotPhysics");
@@ -143,16 +146,29 @@ public class SwerveSubsystem extends SubsystemBase {
         limelight.setPipeline(1);
     }
 
-    public PathPlannerPath createPath(Pose2d currentPose, Pose2d endPose){
-        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(currentPose, endPose);
+    public PathPlannerPath createPath(Pose2d currentPose, Pose2d alignPose, Pose2d endPose){
+        double c = (currentPose.getX() - alignPose.getX()) /
+                    (currentPose.getY() - alignPose.getY());
+        double heading = -Math.atan(c) + (Math.PI / 2);
+        
+        heading = currentPose.getX() > alignPose.getX() ? heading : -heading;
 
+
+        System.out.println("Heading: " + heading);
+
+        // The rotation component in these poses represents the direction of travel
+        Pose2d startPose = new Pose2d(currentPose.getTranslation(), new Rotation2d(heading));
+        Pose2d alignPose2 = new Pose2d(alignPose.getTranslation(), new Rotation2d(heading));
+    
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(startPose, alignPose2, endPose);
         PathPlannerPath path = new PathPlannerPath(
-                waypoints,
-                new PathConstraints(
-                0.5, 0.3, 
-                Units.degreesToRadians(360), Units.degreesToRadians(540)),
-                null, // Ideal starting state can be null for on-the-fly paths
-                new GoalEndState(0.0, currentPose.getRotation()));
+            waypoints, 
+            AutoConstants.constraints,
+            null, // Ideal starting state can be null for on-the-fly paths
+            new GoalEndState(0.0, endPose.getRotation())
+        );
+    
+        path.preventFlipping = true;
 
         System.out.println("Path Created!");
         return path;
@@ -312,10 +328,8 @@ public class SwerveSubsystem extends SubsystemBase {
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));
         
-        if (limelight.getID() >= 0) {
-            if (limelight.getTA() > 0.5){
+        if (limelight.detecting() && limelight.getTA() > 1.5) {
                 poseEstimator.addVisionMeasurement(limelight.getMeasurement().pose, limelight.getMeasurement().timestampSeconds);
-            }
         }  
 
         poseEstimator.update(getRotation2d(), getSwerveModulePosition());
