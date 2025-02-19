@@ -2,11 +2,10 @@ package frc.robot.commands.Autos;
 
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj2.command.Command;
+    import edu.wpi.first.math.geometry.Translation2d;
+    import edu.wpi.first.wpilibj2.command.Command;
     import com.pathplanner.lib.auto.AutoBuilder;
-    import com.pathplanner.lib.path.PathPlannerPath;
+    import frc.robot.Constants.AutoConstants;
     import frc.robot.Constants.FieldPoses;
     import frc.robot.subsystems.SwerveSubsystem;
 // ============================================================================
@@ -16,8 +15,7 @@ public class AutoCollectCmd extends Command {
     private final SwerveSubsystem swerveSubsystem;
 
     private Command command;
-    private Pose2d alignPose;
-    private Pose2d endPose;
+    private Pose2d pose;
 
     // ============================================================================
 
@@ -32,20 +30,17 @@ public class AutoCollectCmd extends Command {
         Pose2d currentPose = swerveSubsystem.getPoseEstimator();
         Translation2d currentTranslation = currentPose.getTranslation();
 
-        if (currentTranslation.getDistance(FieldPoses.kCoralBlueAlignLeft.getTranslation()) <
-            currentTranslation.getDistance(FieldPoses.kCoralBlueAlignRight.getTranslation())) {
-            alignPose = FieldPoses.kCoralBlueAlignLeft;
-            endPose = FieldPoses.kCoralBlueLeft;
+        if (currentTranslation.getDistance(FieldPoses.kCoralBlueLeft.getTranslation()) <
+            currentTranslation.getDistance(FieldPoses.kCoralBlueRight.getTranslation())) {
+            pose = FieldPoses.kCoralBlueLeft;
             System.out.println("Left!");
+
         } else {
             System.out.println("Right!");
-            alignPose = FieldPoses.kCoralBlueAlignRight;
-            endPose = FieldPoses.kCoralBlueRight;
+            pose = FieldPoses.kCoralBlueRight;
         }
 
-        PathPlannerPath path = swerveSubsystem.createPath(currentPose, alignPose, endPose);
-        
-        command = AutoBuilder.followPath(path);
+        command = AutoBuilder.pathfindToPose(pose, AutoConstants.constraints);
         command.initialize();
     }
 
@@ -57,6 +52,7 @@ public class AutoCollectCmd extends Command {
 
     @Override
     public void end(boolean interrupted) {
+        command.end(interrupted);
         System.out.println("Ended");
     }
     

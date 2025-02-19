@@ -1,12 +1,12 @@
 package frc.robot;
 
 import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
@@ -95,10 +95,11 @@ public class Constants {
     }
 
     public static final class FieldPoses {
-        public static final Pose2d kCoralBlueAlignLeft = new Pose2d(1.25, 6.90, new Rotation2d(-1));
-        public static final Pose2d kCoralBlueLeft = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        
-        public static final Pose2d kCoralBlueAlignRight = new Pose2d(1.33, 1.33, new Rotation2d(1));
+        // Load the path you want to follow using its name in the GUI
+        public static PathPlannerPath kCoralBlueLeftPath;
+        public static PathPlannerPath kCoralBlueRightPath;
+
+        public static final Pose2d kCoralBlueLeft = new Pose2d(1.11, 6.93, new Rotation2d(-1));
         public static final Pose2d kCoralBlueRight = new Pose2d(1.06, 0.96, new Rotation2d(1));
     
         // public static final Pose2d kGrid1 = new Pose2d(, , new Rotation2d(-1.14));
@@ -111,9 +112,9 @@ public class Constants {
         // public static final Pose2d kGrid8 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
         // public static final Pose2d kGrid9 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
         // public static final Pose2d kGrid10 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        public static final Pose2d kReef6 = new Pose2d(3.53, 5.36, new Rotation2d(-1));
+        public static final Pose2d kReef6 = new Pose2d(3.48, 5.26, new Rotation2d(-1));
         public static final Pose2d kGrid11 = new Pose2d(3.86, 5.26, new Rotation2d(-1));
-        public static final Pose2d kGrid12 = new Pose2d(3.63, 5.03, new Rotation2d(-1));
+        public static final Pose2d kGrid12 = new Pose2d(3.55, 5.16, new Rotation2d(-1));
 
         public static final Pose2d[] gridPoses = {kGrid11, kGrid12};
     }
@@ -149,11 +150,33 @@ public class Constants {
         public static final double intakeMaxSpeed = 0.4;
         public static final double intakeMax = 24.2;
         public static final double intakeMin = 0;
+        public static Boolean intakeCollecting = false;
         public static double intakeSetpoint = 0;
     }
 
+    public static final class climbConstants {
+        public static final int clawMotorID = 17;
+        public static final int planetaryMotorID = 18;
+
+        public static final double openPosition = 0;
+        public static final double closedPosition = 0;
+
+        public static final double climbMaxSpeed = 0.5;
+        public static final double climbMinSpeed = 0.5;
+        public static final double climbMax = 400;
+        public static final double climbMin = 0;
+
+        public static final double clawMax = 2;
+        public static final double clawMin = 0;
+
+        public static final double climbP = 0.7;
+        public static final double clawP= 0.7;
+        public static double climbSetpoint = 0;
+        public static double clawSetpoint = 0;
+    }
+
     public static final class AutoConstants {
-        public static PathConstraints constraints = new PathConstraints(3.0, 0.5, 
+        public static PathConstraints constraints = new PathConstraints(3.0, 2.7, 
         Units.degreesToRadians(360), Units.degreesToRadians(540));
 
 
@@ -190,6 +213,10 @@ public class Constants {
         public static final int kIntakeOutputButtonIdx = 6;
         public static final int kHoodInputButtonIdx = 7;
         public static final int kHoodOutputButtonIdx = 8;
+        public static final int kClimbUpButtonIdx = 9;
+        public static final int kClimbDownButtonIdx = 10;
+        public static final int kClawOpenButtonIdx = 11;
+        public static final int kClawCloseButtonIdx = 12;
         public static final int kRaiseIntakeButtonIdx = 90;
         public static final int kLowerIntakeButtonIdx = 270;
 

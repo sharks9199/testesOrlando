@@ -1,42 +1,38 @@
 package frc.robot;
 
-import java.util.List;
-
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.events.EventTrigger;
-import com.pathplanner.lib.path.GoalEndState;
-    import com.pathplanner.lib.path.PathConstraints;
+    import com.pathplanner.lib.auto.NamedCommands;
+    import com.pathplanner.lib.commands.PathPlannerAuto;
+    import com.pathplanner.lib.events.EventTrigger;
     import com.pathplanner.lib.path.PathPlannerPath;
-    import com.pathplanner.lib.path.Waypoint;
-    import edu.wpi.first.math.geometry.Pose2d;
-    import edu.wpi.first.math.geometry.Rotation2d;
-    import edu.wpi.first.math.geometry.Translation2d;
-    import edu.wpi.first.math.util.Units;
+    import edu.wpi.first.wpilibj.DriverStation;
     import edu.wpi.first.wpilibj.Joystick;
     import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
     import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
     import edu.wpi.first.wpilibj2.command.Command;
-    import edu.wpi.first.wpilibj2.command.Commands;
     import edu.wpi.first.wpilibj2.command.InstantCommand;
     import edu.wpi.first.wpilibj2.command.button.JoystickButton;
     import edu.wpi.first.wpilibj2.command.button.POVButton;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.FieldPoses;
+    import frc.robot.Constants.AutoConstants;
+    import frc.robot.Constants.FieldPoses;
     import frc.robot.Constants.OIConstants;
-    import frc.robot.Constants.elevatorConstants;
+import frc.robot.Constants.climbConstants;
+import frc.robot.Constants.elevatorConstants;
     import frc.robot.Constants.intakeConstants;
     import frc.robot.commands.SwerveJoystickCmd;
     import frc.robot.commands.Autos.AutoCollectCmd;
     import frc.robot.commands.Autos.AutoScoreCmd;
     import frc.robot.commands.Autos.Autos;
     import frc.robot.commands.Autos.CollectCmd;
-    import frc.robot.commands.Elevator.ElevatorPidCmd;
+import frc.robot.commands.Climb.ClimbCmd;
+import frc.robot.commands.Elevator.ElevatorPidCmd;
     import frc.robot.commands.Intake.IntakePidCmd;
+    import frc.robot.commands.LedStrip.LEDControlCmd;
     import frc.robot.subsystems.LimelightSubsystem;
     import frc.robot.subsystems.IntakeSubsystem;
+    import frc.robot.subsystems.LedStripSubsystem;
+    import frc.robot.subsystems.ClimbSubsystem;
     import frc.robot.subsystems.ElevatorSubsystem;
     import frc.robot.subsystems.SwerveSubsystem;
 // ============================================================================
@@ -50,6 +46,8 @@ public class RobotContainer {
     private final static ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
     private final static IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
     private final static LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
+    private final static LedStripSubsystem ledSubsystem = new LedStripSubsystem();
+    private final static ClimbSubsystem climbSubsystem = new ClimbSubsystem();
     public final static Joystick Joystick1 = new Joystick(OIConstants.kDriverControllerPort);
     private final static Joystick Joystick2 = new Joystick(OIConstants.kSecondDriverControllerPort);
     
@@ -69,6 +67,15 @@ public class RobotContainer {
         intakeSubsystem.setDefaultCommand(new IntakePidCmd(intakeSubsystem, () -> Joystick2.getPOV(), 
                 () -> Joystick2.getRawButton(OIConstants.kIntakeInputButtonIdx) , () -> Joystick2.getRawButton(OIConstants.kIntakeOutputButtonIdx), 
                 () -> Joystick2.getRawButton(OIConstants.kHoodInputButtonIdx), () -> Joystick2.getRawButton(OIConstants.kHoodOutputButtonIdx)));
+        
+
+        climbSubsystem.setDefaultCommand(new ClimbCmd(climbSubsystem, () -> Joystick1.getRawButton
+                (OIConstants.kClimbUpButtonIdx), () -> Joystick1.getRawButton(OIConstants.kClimbDownButtonIdx), 
+                () -> Joystick1.getRawButton(OIConstants.kClawOpenButtonIdx), () -> Joystick1.getRawButton(OIConstants.kClawCloseButtonIdx)));
+
+        // Teste da fita de led
+        
+        
         // ============================================================================
 
         NamedCommands.registerCommand("Shoot", Autos.Shoot(intakeSubsystem));
@@ -106,7 +113,10 @@ public class RobotContainer {
 
         new JoystickButton(Joystick1, OIConstants.kCollectCoralButtonIdx).whileTrue(new AutoCollectCmd(swerveSubsystem));
         new JoystickButton(Joystick1, OIConstants.kScoreCoralButtonIdx).whileTrue(new AutoScoreCmd(swerveSubsystem));
+        new JoystickButton(Joystick1, OIConstants.kHoodInputButtonIdx).whileTrue(new LEDControlCmd(ledSubsystem));
+
     };
+
          
 
     // ========== EXECUTA QUANDO O ROBÔ INICIAR ==========
@@ -129,29 +139,8 @@ public class RobotContainer {
     public void doWhenTeleopInit() {
         elevatorConstants.elevatorSetpoint = elevatorSubsystem.getPosition();
         intakeConstants.intakeSetpoint = intakeSubsystem.getPosition();
-    }
-    // =======================================================
-    
-    // ========== TRAJECTORY FOLLOWER ==========
-    public Command followTrajectory(Pose2d endPose) {
-        Pose2d currentPose = swerveSubsystem.getPoseEstimator();
-
-        System.out.println("Oi");
-
-        // The rotation component in these poses represents the direction of travel
-        Pose2d startPos = new Pose2d(currentPose.getTranslation(), new Rotation2d());
-        Pose2d endPos = new Pose2d(currentPose.getTranslation().plus(new Translation2d(1.0, 0.0)), new Rotation2d());
-
-        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(startPos, endPos);
-        PathPlannerPath path = new PathPlannerPath(
-                waypoints,
-                new PathConstraints(
-                        1.0, 1.0,
-                        Units.degreesToRadians(360), Units.degreesToRadians(540)),
-                null, // Ideal starting state can be null for on-the-fly paths
-                new GoalEndState(0.0, currentPose.getRotation()));
-
-        return AutoBuilder.followPath(path);
+        climbConstants.climbSetpoint = climbSubsystem.getClimbPosition();
+        climbConstants.clawSetpoint = climbSubsystem.getClawPosition();
     }
     // =======================================================
 
@@ -160,6 +149,14 @@ public class RobotContainer {
     public void LoadAutonomousChoices() {
         // Define a opção padrão
         AutoChooser.setDefaultOption("Null", null);
+
+        try{
+            FieldPoses.kCoralBlueLeftPath = PathPlannerPath.fromPathFile("Collect BL");
+            FieldPoses.kCoralBlueRightPath = PathPlannerPath.fromPathFile("Collect BR");
+
+        } catch (Exception e) {
+            DriverStation.reportError("Files not Loaded: " + e.getMessage(), e.getStackTrace());
+        }
 
         PathPlannerAuto autoBL = new PathPlannerAuto("Auto BL");
         AutoChooser.addOption("Teste", autoBL.beforeStarting(AutoBuilder.pathfindToPose(autoBL.getStartingPose(), AutoConstants.constraints)));

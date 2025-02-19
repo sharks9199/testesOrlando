@@ -52,7 +52,6 @@ public class IntakePidCmd extends Command {
         intakeConstants.intakeSetpoint = Math.min(Math.max(intakeConstants.intakeSetpoint, intakeConstants.intakeMin), intakeConstants.intakeMax);
         error = intakePidController.calculate(intakeSubsystem.getPosition(), intakeConstants.intakeSetpoint);
         
-        SmartDashboard.putNumber("Intake Position", intakeSubsystem.getPosition());
         intakeSubsystem.setPlanetary(error);
     }
 

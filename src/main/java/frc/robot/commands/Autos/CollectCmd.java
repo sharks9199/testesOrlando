@@ -32,6 +32,7 @@ public class CollectCmd extends Command {
 
         intakeSubsystem.setHood(-0.15);
         intakeSubsystem.setIntake(0.25);
+        intakeConstants.intakeCollecting = true;
         System.out.println("Inicialized");
     }
 
@@ -47,6 +48,7 @@ public class CollectCmd extends Command {
     @Override
     public void end(boolean interrupted) {
         System.out.println("Ended");
+        intakeConstants.intakeCollecting = false;
         intakeSubsystem.setIntake(0);
         intakeSubsystem.setHood(0);
     }

@@ -5,10 +5,8 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NTSendableBuilder;
 import edu.wpi.first.networktables.NetworkTable;
@@ -26,14 +24,11 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.config.PIDConstants;
-
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.FieldPoses;
 import frc.robot.LimelightHelpers;
 
 public class SwerveSubsystem extends SubsystemBase {
@@ -329,9 +324,9 @@ public class SwerveSubsystem extends SubsystemBase {
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));
         
-        if (limelight.getID() > 0 && limelight.getTA() > 1) {
+        if (limelight.getID() > 0 && limelight.getTA() > 0.7) {
                 LimelightHelpers.PoseEstimate measurement = limelight.getMeasurement(getAngle());
-
+                //System.out.println(limelight.getLimelightName());
                 poseEstimator.addVisionMeasurement(measurement.pose, measurement.timestampSeconds);
             }  
 

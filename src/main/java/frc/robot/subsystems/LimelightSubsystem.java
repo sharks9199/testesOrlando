@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 import frc.robot.Constants.LimelightConstants;
 import frc.robot.LimelightHelpers.PoseEstimate;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
@@ -12,6 +11,10 @@ public class LimelightSubsystem extends SubsystemBase {
     public static String LimelightID = LimelightConstants.LimelightCoral;
     private boolean detecting = false;
     
+    public String getLimelightName() {
+        return LimelightID;
+    }
+
     public double getID() {
         return LimelightHelpers.getFiducialID(LimelightID);
     }
@@ -66,25 +69,25 @@ public class LimelightSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if(getID() < 1){
-            LimelightID = LimelightConstants.LimelightReef;
-            if(getID() < 1){
-                LimelightID = LimelightConstants.LimelightCoral;
-            }
-        }
+        // if(getID() < 1){
+        //     LimelightID = LimelightConstants.LimelightReef;
+        //     if(getID() < 1){
+        //         LimelightID = LimelightConstants.LimelightCoral;
+        //     }
+        // }
 
-        if(getID() > 0){
-            if(LimelightID == LimelightConstants.LimelightReef){
-                detecting = true;
-            }
+        // if(getID() > 0){
+        //     if(LimelightID == LimelightConstants.LimelightReef){
+        //         detecting = true;
+        //     }
 
-            if(LimelightID == LimelightConstants.LimelightCoral && getTA() > 1.5){
-                detecting = true;
-            }
+        //     if(LimelightID == LimelightConstants.LimelightCoral && getTA() > 1.5){
+        //         detecting = true;
+        //     }
 
-        } else {
-            detecting = false;
-        }
+        // } else {
+        //     detecting = false;
+        // }
 
     }
 

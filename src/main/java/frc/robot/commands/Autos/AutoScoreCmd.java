@@ -6,7 +6,9 @@ package frc.robot.commands.Autos;
     import edu.wpi.first.wpilibj2.command.Command;
     import com.pathplanner.lib.auto.AutoBuilder;
     import com.pathplanner.lib.path.PathPlannerPath;
-    import frc.robot.Constants.FieldPoses;
+
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.FieldPoses;
     import frc.robot.subsystems.SwerveSubsystem;
 // ============================================================================
 
@@ -25,31 +27,29 @@ public class AutoScoreCmd extends Command {
 
     @Override
     public void initialize() {
-        Pose2d currentPose = swerveSubsystem.getPoseEstimator();
-        Translation2d currentTranslation = currentPose.getTranslation();
+        // Pose2d currentPose = swerveSubsystem.getPoseEstimator();
+        // Translation2d currentTranslation = currentPose.getTranslation();
         
-        // Inicializa as variáveis de comparação
-        Pose2d[] gridPoses = FieldPoses.gridPoses;
+        // // Inicializa as variáveis de comparação
+        // Pose2d[] gridPoses = FieldPoses.gridPoses;
 
-        Pose2d closestPose = null;
-        double minDistance = Double.MAX_VALUE;
-        double distance;
+        // Pose2d closestPose = null;
+        // double minDistance = Double.MAX_VALUE;
+        // double distance;
         
-        // Itera sobre as poses e calcula a distância uma vez
-        for (Pose2d pose : gridPoses) {
-            distance = currentTranslation.getDistance(pose.getTranslation()); // Calcula a distância
+        // // Itera sobre as poses e calcula a distância uma vez
+        // for (Pose2d pose : gridPoses) {
+        //     distance = currentTranslation.getDistance(pose.getTranslation()); // Calcula a distância
             
-            if (distance < minDistance) { // Atualiza se encontrar uma pose mais próxima
-                minDistance = distance;
-                closestPose = pose;
-            }
-        }
+        //     if (distance < minDistance) { // Atualiza se encontrar uma pose mais próxima
+        //         minDistance = distance;
+        //         closestPose = pose;
+        //     }
+        // }
 
-        System.out.println("Closest Pose: " + closestPose);
+        //System.out.println("Closest Pose: " + closestPose);
 
-        PathPlannerPath path = swerveSubsystem.createPath(currentPose, FieldPoses.kReef6, closestPose);
-        
-        command = AutoBuilder.followPath(path);
+        command = AutoBuilder.pathfindToPose(FieldPoses.kGrid12, AutoConstants.constraints);
         command.initialize();
     }
 
@@ -61,6 +61,7 @@ public class AutoScoreCmd extends Command {
 
     @Override
     public void end(boolean interrupted) {
+        command.end(interrupted);
         System.out.println("Ended");
     }
     
