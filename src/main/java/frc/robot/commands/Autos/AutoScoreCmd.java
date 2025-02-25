@@ -1,21 +1,16 @@
 package frc.robot.commands.Autos;
 
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
-    import edu.wpi.first.math.geometry.Pose2d;
-    import edu.wpi.first.math.geometry.Translation2d;
     import edu.wpi.first.wpilibj2.command.Command;
     import com.pathplanner.lib.auto.AutoBuilder;
-    import com.pathplanner.lib.path.PathPlannerPath;
-
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.FieldPoses;
+    import frc.robot.Constants.AutoConstants;
+    import frc.robot.Constants.FieldPoses;
     import frc.robot.subsystems.SwerveSubsystem;
 // ============================================================================
 
 public class AutoScoreCmd extends Command {
     // =================== INSTANCIA OS SUBSISTEMAS E VARIAVEIS =================
     private final SwerveSubsystem swerveSubsystem;
-
     private Command command;
     // ============================================================================
 
@@ -47,7 +42,7 @@ public class AutoScoreCmd extends Command {
         //     }
         // }
 
-        //System.out.println("Closest Pose: " + closestPose);
+        // System.out.println("Closest Pose: " + closestPose);
 
         command = AutoBuilder.pathfindToPose(FieldPoses.kGrid12, AutoConstants.constraints);
         command.initialize();

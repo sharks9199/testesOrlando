@@ -6,6 +6,8 @@ package frc.robot;
     import com.pathplanner.lib.commands.PathPlannerAuto;
     import com.pathplanner.lib.events.EventTrigger;
     import com.pathplanner.lib.path.PathPlannerPath;
+    import edu.wpi.first.math.geometry.Pose2d;
+    import edu.wpi.first.math.geometry.Translation2d;
     import edu.wpi.first.wpilibj.DriverStation;
     import edu.wpi.first.wpilibj.Joystick;
     import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -17,16 +19,17 @@ package frc.robot;
     import frc.robot.Constants.AutoConstants;
     import frc.robot.Constants.FieldPoses;
     import frc.robot.Constants.OIConstants;
-import frc.robot.Constants.climbConstants;
-import frc.robot.Constants.elevatorConstants;
+    import frc.robot.Constants.climbConstants;
+    import frc.robot.Constants.elevatorConstants;
     import frc.robot.Constants.intakeConstants;
     import frc.robot.commands.SwerveJoystickCmd;
-    import frc.robot.commands.Autos.AutoCollectCmd;
+    import frc.robot.commands.Autos.AutoAlignLeftCmd;
+    import frc.robot.commands.Autos.AutoAlignRightCmd;
     import frc.robot.commands.Autos.AutoScoreCmd;
     import frc.robot.commands.Autos.Autos;
     import frc.robot.commands.Autos.CollectCmd;
-import frc.robot.commands.Climb.ClimbCmd;
-import frc.robot.commands.Elevator.ElevatorPidCmd;
+    import frc.robot.commands.Climb.ClimbCmd;
+    import frc.robot.commands.Elevator.ElevatorPidCmd;
     import frc.robot.commands.Intake.IntakePidCmd;
     import frc.robot.commands.LedStrip.LEDControlCmd;
     import frc.robot.subsystems.LimelightSubsystem;
@@ -50,7 +53,6 @@ public class RobotContainer {
     private final static ClimbSubsystem climbSubsystem = new ClimbSubsystem();
     public final static Joystick Joystick1 = new Joystick(OIConstants.kDriverControllerPort);
     private final static Joystick Joystick2 = new Joystick(OIConstants.kSecondDriverControllerPort);
-    
     // ============================================================================
 
     public RobotContainer() {
@@ -67,16 +69,11 @@ public class RobotContainer {
         intakeSubsystem.setDefaultCommand(new IntakePidCmd(intakeSubsystem, () -> Joystick2.getPOV(), 
                 () -> Joystick2.getRawButton(OIConstants.kIntakeInputButtonIdx) , () -> Joystick2.getRawButton(OIConstants.kIntakeOutputButtonIdx), 
                 () -> Joystick2.getRawButton(OIConstants.kHoodInputButtonIdx), () -> Joystick2.getRawButton(OIConstants.kHoodOutputButtonIdx)));
-        
-
+                
+        //Comando padrão para controle do Climb
         climbSubsystem.setDefaultCommand(new ClimbCmd(climbSubsystem, () -> Joystick1.getRawButton
                 (OIConstants.kClimbUpButtonIdx), () -> Joystick1.getRawButton(OIConstants.kClimbDownButtonIdx), 
                 () -> Joystick1.getRawButton(OIConstants.kClawOpenButtonIdx), () -> Joystick1.getRawButton(OIConstants.kClawCloseButtonIdx)));
-
-        // Teste da fita de led
-        
-        
-        // ============================================================================
 
         NamedCommands.registerCommand("Shoot", Autos.Shoot(intakeSubsystem));
 
@@ -93,6 +90,11 @@ public class RobotContainer {
         // Acionar Coleta Automatizada 
         new JoystickButton(Joystick1, OIConstants.kCollectButtonIdx)
                 .toggleOnTrue(new CollectCmd(elevatorSubsystem, intakeSubsystem, () -> Joystick1.getRawButtonPressed(OIConstants.kCollectButtonIdx)));
+        
+        new JoystickButton(Joystick1, OIConstants.kAlignReefLeftButtonIdx)
+                .whileTrue(new AutoAlignLeftCmd(swerveSubsystem, limelightSubsystem));
+        new JoystickButton(Joystick1, OIConstants.kAlignReefRightButtonIdx)
+                .whileTrue(new AutoAlignRightCmd(swerveSubsystem, limelightSubsystem));
 
         // Presets para cada posição 
         new POVButton(Joystick1, OIConstants.kL1ButtonIdx, 0)
@@ -111,13 +113,56 @@ public class RobotContainer {
         new JoystickButton(Joystick2, OIConstants.kHoodOutputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setHood(0)));
         new JoystickButton(Joystick2, OIConstants.kHoodInputButtonIdx).onFalse(new InstantCommand(() -> intakeSubsystem.setHood(0)));
 
-        new JoystickButton(Joystick1, OIConstants.kCollectCoralButtonIdx).whileTrue(new AutoCollectCmd(swerveSubsystem));
+        new JoystickButton(Joystick1, OIConstants.kCollectCoralButtonIdx).whileTrue(AutoBuilder.pathfindToPose(FieldPoses.kCoralBlueLeft, AutoConstants.constraints));
         new JoystickButton(Joystick1, OIConstants.kScoreCoralButtonIdx).whileTrue(new AutoScoreCmd(swerveSubsystem));
         new JoystickButton(Joystick1, OIConstants.kHoodInputButtonIdx).whileTrue(new LEDControlCmd(ledSubsystem));
 
     };
 
-         
+    // ========== Retorna a Coral Station mais Próxima ==========
+    public Pose2d getCollectPose() {
+        // Obtemos a pose atual do robô
+        Pose2d currentPose = swerveSubsystem.getPoseEstimator();
+        Translation2d currentTranslation = currentPose.getTranslation();
+
+        // Calcula a distância do robô para as duas posições de referência
+        double distanceToLeft = currentTranslation.getDistance(FieldPoses.kCoralBlueLeft.getTranslation());
+        double distanceToRight = currentTranslation.getDistance(FieldPoses.kCoralBlueRight.getTranslation());
+
+        // Verifica qual das posições (esquerda ou direita) está mais próxima e retorna a pose
+        if (distanceToLeft > distanceToRight) {
+            System.out.println("Left!");
+            return FieldPoses.kCoralBlueLeft;
+        } else {
+            System.out.println("Right!");
+            return FieldPoses.kCoralBlueRight;
+        }}
+    // ==========================================================
+
+    // ========== Retorna a Coral Station mais Próxima ==========
+    public Pose2d getScorePose() {
+        Pose2d currentPose = swerveSubsystem.getPoseEstimator();
+        Translation2d currentTranslation = currentPose.getTranslation();
+        
+        // Inicializa as variáveis de comparação
+        Pose2d[] gridPoses = FieldPoses.gridPoses;
+        Pose2d closestPose = null;
+        double minDistance = Double.MAX_VALUE;
+        double distance;
+
+        // Itera sobre as poses e calcula a distância uma vez
+        for (Pose2d pose : gridPoses) {
+            distance = currentTranslation.getDistance(pose.getTranslation()); // Calcula a distância
+
+            if (distance < minDistance) { // Atualiza se encontrar uma pose mais próxima
+                minDistance = distance;
+                closestPose = pose;
+            }
+        }
+
+        return closestPose;
+    }
+    // ==========================================================
 
     // ========== EXECUTA QUANDO O ROBÔ INICIAR ==========
     public void doWhenRobotInit() {
@@ -126,8 +171,6 @@ public class RobotContainer {
         LoadAutonomousChoices();
     }
     // =======================================================
-
-
 
     // ========== EXECUTA QUANDO O TELEOPERADO INICIAR ==========
     public void doWhenAutoInit() {

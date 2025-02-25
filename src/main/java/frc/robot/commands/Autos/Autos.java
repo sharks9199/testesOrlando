@@ -16,7 +16,6 @@ public class Autos {
             new InstantCommand(()-> intakeSubsystem.setIntake(intakeSubsystem.getPosition() < 10 ? 0.3 : -0.3)),
             new WaitCommand(1),
             new InstantCommand(()-> intakeSubsystem.setIntake(0))
-            
             );
     }
 

@@ -143,8 +143,8 @@ public class Constants {
         public static final double kCANrangeDetectionLimit = 0.1;
         public static final double CollectPosition = 1;
         public static final double L1Position = 3.02;
-        public static final double L2Position = 1.33;
-        public static final double L3Position = 2.3;
+        public static final double L2Position = 3.02;
+        public static final double L3Position = 3.02;
         public static final double L4Position = 17.4;
 
         public static final double intakeMaxSpeed = 0.4;
@@ -164,7 +164,7 @@ public class Constants {
         public static final double climbMaxSpeed = 0.5;
         public static final double climbMinSpeed = 0.5;
         public static final double climbMax = 400;
-        public static final double climbMin = 0;
+        public static final double climbMin = -400;
 
         public static final double clawMax = 2;
         public static final double clawMin = 0;
@@ -179,12 +179,19 @@ public class Constants {
         public static PathConstraints constraints = new PathConstraints(3.0, 2.7, 
         Units.degreesToRadians(360), Units.degreesToRadians(540));
 
+        public static final double kPLimelightAlignX = 2;
+        public static final double kPLimelightAlignZ = 3;
+        public static final double kPLimelightAlignAngular = 0.1;
 
+        public static final double kMaxZAcelleration = 0.5;
+        public static final double kMaxXAcelleration = 3;
+        public static final double kMaxAngularAcelleration = 3;
     }
     
     public static final class LimelightConstants {
         public static String LimelightCoral = "limelight-coral"; 
-        public static String LimelightReef = "limelight-reef"; 
+        public static String LimelightReefLeft = "limelight-reefle";
+        public static String LimelightReefRight = "limelight-reefri";
     }
 
     public static final class XboxConstants {
@@ -219,10 +226,12 @@ public class Constants {
         public static final int kClawCloseButtonIdx = 12;
         public static final int kRaiseIntakeButtonIdx = 90;
         public static final int kLowerIntakeButtonIdx = 270;
-
+        
         public static final int kRaiseElevatorButtonIdx = 0;
         public static final int kLowerElevatorButtonIdx = 180;
-
+        
+        public static final int kAlignReefLeftButtonIdx = 5;
+        public static final int kAlignReefRightButtonIdx = 6;
         public static final int kCollectCoralButtonIdx = 3;
         public static final int kScoreCoralButtonIdx = 4;
         public static final int kCollectButtonIdx = 2;

@@ -29,6 +29,7 @@ import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.config.PIDConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.LimelightConstants;
 import frc.robot.LimelightHelpers;
 
 public class SwerveSubsystem extends SubsystemBase {
@@ -139,7 +140,6 @@ public class SwerveSubsystem extends SubsystemBase {
             }
         }).start();
 
-        limelight.setPipeline(1);
     }
 
     public PathPlannerPath createPath(Pose2d currentPose, Pose2d alignPose, Pose2d endPose){
@@ -324,11 +324,11 @@ public class SwerveSubsystem extends SubsystemBase {
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));
         
-        if (limelight.getID() > 0 && limelight.getTA() > 0.7) {
-                LimelightHelpers.PoseEstimate measurement = limelight.getMeasurement(getAngle());
+        if (limelight.getID(LimelightConstants.LimelightCoral) > 0 && limelight.getTA(LimelightConstants.LimelightCoral) > 0.7) {
+                LimelightHelpers.PoseEstimate measurement = limelight.getMeasurement(getAngle(), LimelightConstants.LimelightCoral);
                 //System.out.println(limelight.getLimelightName());
                 poseEstimator.addVisionMeasurement(measurement.pose, measurement.timestampSeconds);
-            }  
+        }  
 
         poseEstimator.update(getRotation2d(), getSwerveModulePosition());
     }

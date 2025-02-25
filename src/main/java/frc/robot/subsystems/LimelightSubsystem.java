@@ -6,89 +6,96 @@ import frc.robot.Constants.LimelightConstants;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class LimelightSubsystem extends SubsystemBase {
-    public static String LimelightID = LimelightConstants.LimelightCoral;
-    private boolean detecting = false;
-    
-    public String getLimelightName() {
-        return LimelightID;
+
+    public double getID(String limelightName) {
+        return LimelightHelpers.getFiducialID(limelightName);
     }
 
-    public double getID() {
-        return LimelightHelpers.getFiducialID(LimelightID);
-    }
-
-    public PoseEstimate getMeasurement(double angle){
-        LimelightHelpers.SetRobotOrientation(LimelightID, angle, 0.0, 0.0, 0.0, 0.0, 0.0);
-        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LimelightID);
-
+    public PoseEstimate getMeasurement(double angle, String limelightName){
+        LimelightHelpers.SetRobotOrientation(limelightName, angle, 0.0, 0.0, 0.0, 0.0, 0.0);
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
+        
         return limelightMeasurement;
     }
     
-    public Pose2d getRobotPose(){
-        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue(LimelightID);
+    public Pose2d getRobotPose(String limelightName){
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
         return new Pose2d(limelightMeasurement.pose.getX(), limelightMeasurement.pose.getY(), limelightMeasurement.pose.getRotation());
     }
 
-    public double getPoseX(){
-        return getRobotPose().getX();
+    public double getPoseX(String limelightName){
+        return getRobotPose(limelightName).getX();
     }
 
-    public double getPoseY(){
-        return getRobotPose().getY();
+    public double getPoseY(String limelightName){
+        return getRobotPose(limelightName).getY();
     }
     
-    public Rotation2d getPoseRotation2d(){
-        return getRobotPose().getRotation();
+    public Rotation2d getPoseRotation2d(String limelightName){
+        return getRobotPose(limelightName).getRotation();
     }
     
-    public double getPipeline(){
-        return LimelightHelpers.getCurrentPipelineIndex(LimelightID);
+    public double getPipeline(String limelightName){
+        return LimelightHelpers.getCurrentPipelineIndex(limelightName);
     }
 
-    public void setPipeline(int pipeline){
-        LimelightHelpers.setPipelineIndex(LimelightID, pipeline);
+    public void setPipeline(int pipeline, String limelightName){
+        LimelightHelpers.setPipelineIndex(limelightName, pipeline);
     }
 
-    public double getTA(){
-        return LimelightHelpers.getTA(LimelightID);
+    public double getTA(String limelightName){
+        return LimelightHelpers.getTA(limelightName);
     }
 
-    public double getTX(){
-        return LimelightHelpers.getTX(LimelightID);
+    public double getx(String limelightName){
+        return LimelightHelpers.getTX(limelightName);
     }
 
-    public double getTY(){
-        return LimelightHelpers.getTY(LimelightID);
+    public double gety(String limelightName){
+        return LimelightHelpers.getTY(limelightName);
     }
 
-    public boolean detecting(){
-        return detecting;
+    public double[] getBotPose(String limelightName){
+        return LimelightHelpers.getTargetPose_RobotSpace(limelightName);
+    }
+
+    public double getTX(String limelightName){
+        return getBotPose(limelightName)[0];
+    }
+    
+    public double getTZ(String limelightName){
+        return getBotPose(limelightName)[2];
+    }
+    
+    public double getRY(String limelightName){
+        return getBotPose(limelightName)[4];
     }
 
     @Override
     public void periodic() {
-        // if(getID() < 1){
-        //     LimelightID = LimelightConstants.LimelightReef;
-        //     if(getID() < 1){
-        //         LimelightID = LimelightConstants.LimelightCoral;
-        //     }
-        // }
+        if (getID(LimelightConstants.LimelightReefLeft) > 1) {
+            double tx = getTX(LimelightConstants.LimelightReefLeft);
+            double tz = getTZ(LimelightConstants.LimelightReefLeft);
+            double angularError = getRY(LimelightConstants.LimelightReefLeft);
 
-        // if(getID() > 0){
-        //     if(LimelightID == LimelightConstants.LimelightReef){
-        //         detecting = true;
-        //     }
+            SmartDashboard.putNumber("TX Left", tx);
+            SmartDashboard.putNumber("TZ Left", tz);
+            SmartDashboard.putNumber("angularError Left", angularError);
+        }
 
-        //     if(LimelightID == LimelightConstants.LimelightCoral && getTA() > 1.5){
-        //         detecting = true;
-        //     }
+        if (getID(LimelightConstants.LimelightReefRight) > 1) {
+            double tx = getTX(LimelightConstants.LimelightReefRight);
+            double tz = getTZ(LimelightConstants.LimelightReefRight);
+            double angularError = getRY(LimelightConstants.LimelightReefRight);
 
-        // } else {
-        //     detecting = false;
-        // }
-
+            SmartDashboard.putNumber("TX Right", tx);
+            SmartDashboard.putNumber("TZ Right", tz);
+            SmartDashboard.putNumber("angularError Right", angularError);
+        }
+        
     }
 
 }
