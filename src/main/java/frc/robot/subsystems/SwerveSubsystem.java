@@ -1,10 +1,15 @@
 package frc.robot.subsystems;
 
-import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+
+import org.opencv.photo.AlignExposures;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.DoublePublisher;
@@ -16,20 +21,25 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.config.PIDConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.FieldPoses;
 import frc.robot.Constants.LimelightConstants;
+import frc.robot.Constants.climbConstants;
+import frc.robot.Constants.intakeConstants;
 import frc.robot.LimelightHelpers;
 
 public class SwerveSubsystem extends SubsystemBase {
@@ -83,6 +93,7 @@ public class SwerveSubsystem extends SubsystemBase {
     NTSendableBuilder builder;
     NetworkTable m_table;
     boolean doRejectUpdate;
+    PathPlannerPath pathFirstPosition;
     
     public final static Pigeon2 gyro = new Pigeon2(22);
     public final LimelightSubsystem limelight = new LimelightSubsystem();
@@ -142,34 +153,6 @@ public class SwerveSubsystem extends SubsystemBase {
 
     }
 
-    public PathPlannerPath createPath(Pose2d currentPose, Pose2d alignPose, Pose2d endPose){
-        double c = (currentPose.getX() - alignPose.getX()) /
-                    (currentPose.getY() - alignPose.getY());
-        double heading = -Math.atan(c) + (Math.PI / 2);
-        
-        heading = currentPose.getX() > alignPose.getX() ? heading : -heading;
-
-
-        System.out.println("Heading: " + heading);
-
-        // The rotation component in these poses represents the direction of travel
-        Pose2d startPose = new Pose2d(currentPose.getTranslation(), new Rotation2d(heading));
-        Pose2d alignPose2 = new Pose2d(alignPose.getTranslation(), new Rotation2d(heading));
-    
-        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(startPose, alignPose2, endPose);
-        PathPlannerPath path = new PathPlannerPath(
-            waypoints, 
-            AutoConstants.constraints,
-            null, // Ideal starting state can be null for on-the-fly paths
-            new GoalEndState(0.0, endPose.getRotation())
-        );
-    
-        path.preventFlipping = true;
-
-        System.out.println("Path Created!");
-        return path;
-    }
-
     public void zeroHeading() {
         gyro.reset();
     }
@@ -197,6 +180,10 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public void resetPoseEstimator(Pose2d pose) {
         poseEstimator.resetPosition(getRotation2d(), getSwerveModulePosition(), pose);
+    }   
+
+    public double getForwardPosition(){
+        return frontLeft.getDrivePosition();
     }
 
     public void stopModules() {
@@ -312,6 +299,91 @@ public class SwerveSubsystem extends SubsystemBase {
         return array;
     }
 
+    public Command pathfindToPose(Supplier<Pose2d> _pose) {
+        return new DeferredCommand(
+            () -> AutoBuilder.pathfindToPose(_pose.get(), AutoConstants.constraintsAuto),
+            Set.of(this)
+        );
+    }
+
+    public Command pathfindThenFollowPath(Supplier<PathPlannerPath> _path) {
+        return new DeferredCommand(
+            () -> AutoBuilder.pathfindThenFollowPath(_path.get(), AutoConstants.constraintsAuto), 
+            Set.of(this)
+
+        );
+    }
+
+    public Command pathfindToStartingPoseBlue(Supplier<PathPlannerPath> _path) {
+        return new DeferredCommand(
+            () -> AutoBuilder.pathfindToPose(_path.get().getStartingHolonomicPose().get(), AutoConstants.constraintsAuto), 
+            Set.of(this));
+          
+    }
+
+    public Command pathfindToStartingPoseRed(Supplier<PathPlannerPath> _path) {
+        climbConstants.clawSetpoint = 1.7;
+
+        return new DeferredCommand(
+            () -> AutoBuilder.pathfindToPose(_path.get().flipPath().getStartingHolonomicPose().get(), AutoConstants.constraintsAuto, 0.5), 
+            Set.of(this));
+        
+    }
+
+    public void changeShowRoomState(){
+        DriveConstants.ShowRoomMode = !DriveConstants.ShowRoomMode;
+    }
+
+    // ========== Retorna a Coral Station mais Próxima ==========
+    public Command getCollectPose() {
+        // Obtemos a pose atual do robô
+        Pose2d currentPose = getPoseEstimator();
+        Translation2d currentTranslation = currentPose.getTranslation();
+
+        // Calcula a distância do robô para as duas posições de referência
+        double distanceToLeft = currentTranslation.getDistance(FieldPoses.kCoralBlueLeft.getTranslation());
+        double distanceToRight = currentTranslation.getDistance(FieldPoses.kCoralBlueRight.getTranslation());
+
+        
+        // Verifica qual das posições (esquerda ou direita) está mais próxima e retorna a pose
+        if (distanceToLeft > distanceToRight) {
+            System.out.println("Left!");
+            return AutoBuilder.pathfindToPose(FieldPoses.kCoralBlueLeft, AutoConstants.constraints);
+        } else {
+            System.out.println("Right!");
+            return AutoBuilder.pathfindToPose(FieldPoses.kCoralBlueRight, AutoConstants.constraints);
+        }}
+    // ==========================================================
+
+    // ========== Retorna a Coral Station mais Próxima ==========
+    public Pose2d getScorePose() {
+        // Obtemos a pose atual do robô
+        Pose2d currentPose = getPoseEstimator();
+        Translation2d currentTranslation = currentPose.getTranslation();
+        
+        // Inicializa a variável que vai armazenar a pose mais próxima e a distância mínima
+        Pose2d closestPose = null;
+        double minDistance = Double.MAX_VALUE;
+
+        // Itera sobre a lista de poses e encontra a mais próxima
+        for (Pose2d gridPose : FieldPoses.gridPoses) {
+            // Calcula a distância entre a pose atual do robô e a pose da lista
+            double distance = currentTranslation.getDistance(gridPose.getTranslation());
+
+            // Se a distância for menor que a mínima encontrada, atualiza a pose mais próxima e a distância mínima
+            if (distance < minDistance) {
+                closestPose = gridPose;
+                minDistance = distance;
+            }
+        }
+
+        System.out.println("Closest Pose: " + closestPose);
+
+        return closestPose;
+    }
+
+    // ==========================================================
+
     StructArrayPublisher<SwerveModuleState> publisherStates = NetworkTableInstance.getDefault().getTable("RobotPhysics")
     .getStructArrayTopic("SwerveStates", SwerveModuleState.struct).publish();
 
@@ -323,12 +395,12 @@ public class SwerveSubsystem extends SubsystemBase {
         publisherStates.set(getSwerveModuleState());
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));
-        
-        if (limelight.getID(LimelightConstants.LimelightCoral) > 0 && limelight.getTA(LimelightConstants.LimelightCoral) > 0.7) {
-                LimelightHelpers.PoseEstimate measurement = limelight.getMeasurement(getAngle(), LimelightConstants.LimelightCoral);
-                //System.out.println(limelight.getLimelightName());
+
+        if (limelight.getID(LimelightConstants.LimelightToUpdatePose) > 0 && limelight.getTA(LimelightConstants.LimelightToUpdatePose) > 0.35) {
+                System.out.println("Limelight: " + LimelightConstants.LimelightToUpdatePose);
+                LimelightHelpers.PoseEstimate measurement = limelight.getMeasurement(getAngle(), LimelightConstants.LimelightToUpdatePose);
                 poseEstimator.addVisionMeasurement(measurement.pose, measurement.timestampSeconds);
-        }  
+        }   
 
         poseEstimator.update(getRotation2d(), getSwerveModulePosition());
     }

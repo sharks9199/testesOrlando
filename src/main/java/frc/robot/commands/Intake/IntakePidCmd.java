@@ -2,7 +2,6 @@ package frc.robot.commands.Intake;
 
 import java.util.function.Supplier;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.intakeConstants;
@@ -38,9 +37,9 @@ public class IntakePidCmd extends Command {
         if(pov.get() == OIConstants.kLowerIntakeButtonIdx){intakeSubsystem.changeSetpoint(intakeConstants.intakeSetpoint - 0.2);}
 
         if (intakeInputButton.get()) {
-            intakeSubsystem.setIntake(0.3);
+            intakeSubsystem.setIntake(intakeSubsystem.getPosition() > 10 ? 0.5 : -0.5 );
         } else if (intakeOutputButton.get()) {
-            intakeSubsystem.setIntake(-0.3);
+            intakeSubsystem.setIntake(intakeSubsystem.getPosition() > 10 ? -0.5 : 0.5 );
         }
 
         if (hoodInputButton.get()) {

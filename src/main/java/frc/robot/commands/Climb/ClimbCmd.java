@@ -1,7 +1,6 @@
 package frc.robot.commands.Climb;
 
 import java.util.function.Supplier;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.climbConstants;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -26,16 +25,18 @@ public class ClimbCmd extends Command {
 
     @Override
     public void initialize(){
-
+        climbConstants.climbSetpoint = climbSubsystem.getClimbPosition();
+        climbConstants.clawSetpoint = climbSubsystem.getClawPosition();
+        
     }
 
     @Override
     public void execute(){
-        if(clawOpenButton.get()){climbSubsystem.incrementClawSetpoint(0.04);}
-        if(clawCloseButton.get()){climbSubsystem.incrementClawSetpoint(-0.04);}
+        if(clawOpenButton.get()){climbSubsystem.incrementClawSetpoint(0.02);}
+        if(clawCloseButton.get()){climbSubsystem.incrementClawSetpoint(-0.02);}
 
-        if(climbUpButton.get()){climbSubsystem.incrementClimbSetpoint(1);}
-        if(climbDownButton.get()){climbSubsystem.incrementClimbSetpoint(-1);}
+        if(climbUpButton.get()){climbSubsystem.incrementClimbSetpoint(2);}
+        if(climbDownButton.get()){climbSubsystem.incrementClimbSetpoint(-2);}
 
         climbConstants.climbSetpoint = Math.min(Math.max(climbConstants.climbSetpoint, climbConstants.climbMin), climbConstants.climbMax);
         climbSubsystem.setPlanetary(climbConstants.climbSetpoint);

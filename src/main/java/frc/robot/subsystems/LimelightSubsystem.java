@@ -2,11 +2,9 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
-import frc.robot.Constants.LimelightConstants;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class LimelightSubsystem extends SubsystemBase {
 
@@ -16,7 +14,7 @@ public class LimelightSubsystem extends SubsystemBase {
 
     public PoseEstimate getMeasurement(double angle, String limelightName){
         LimelightHelpers.SetRobotOrientation(limelightName, angle, 0.0, 0.0, 0.0, 0.0, 0.0);
-        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
         
         return limelightMeasurement;
     }
@@ -59,43 +57,45 @@ public class LimelightSubsystem extends SubsystemBase {
     }
 
     public double[] getBotPose(String limelightName){
-        return LimelightHelpers.getTargetPose_RobotSpace(limelightName);
+        if (getID(limelightName) > 1){
+            return LimelightHelpers.getTargetPose_RobotSpace(limelightName);
+        }
+
+        return new double[] {0.0, 0.0, 0.0, 0.0, 0.0};
     }
 
     public double getTX(String limelightName){
-        return getBotPose(limelightName)[0];
+        double[] botPose = getBotPose(limelightName);
+
+        if (botPose.length > 0) {
+            return botPose[0];
+        } else {
+            return 0.0; 
+        }
     }
     
     public double getTZ(String limelightName){
-        return getBotPose(limelightName)[2];
+        double[] botPose = getBotPose(limelightName);
+
+        if (botPose.length > 0) {
+            return botPose[2];
+        } else {
+            return 0.0; 
+        }
     }
     
     public double getRY(String limelightName){
-        return getBotPose(limelightName)[4];
+        double[] botPose = getBotPose(limelightName);
+
+        if (botPose.length > 0) {
+            return botPose[4];
+        } else {
+            return 0.0; 
+        }
     }
 
     @Override
     public void periodic() {
-        if (getID(LimelightConstants.LimelightReefLeft) > 1) {
-            double tx = getTX(LimelightConstants.LimelightReefLeft);
-            double tz = getTZ(LimelightConstants.LimelightReefLeft);
-            double angularError = getRY(LimelightConstants.LimelightReefLeft);
-
-            SmartDashboard.putNumber("TX Left", tx);
-            SmartDashboard.putNumber("TZ Left", tz);
-            SmartDashboard.putNumber("angularError Left", angularError);
-        }
-
-        if (getID(LimelightConstants.LimelightReefRight) > 1) {
-            double tx = getTX(LimelightConstants.LimelightReefRight);
-            double tz = getTZ(LimelightConstants.LimelightReefRight);
-            double angularError = getRY(LimelightConstants.LimelightReefRight);
-
-            SmartDashboard.putNumber("TX Right", tx);
-            SmartDashboard.putNumber("TZ Right", tz);
-            SmartDashboard.putNumber("angularError Right", angularError);
-        }
-        
     }
 
 }

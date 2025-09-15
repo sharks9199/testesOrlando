@@ -2,10 +2,13 @@ package frc.robot.commands.Autos;
 
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import edu.wpi.first.math.controller.PIDController;
-    import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
     import edu.wpi.first.wpilibj2.command.Command;
     import frc.robot.Constants.AutoConstants;
+    import frc.robot.Constants.LEDConstants;
     import frc.robot.Constants.LimelightConstants;
+    import frc.robot.Constants.climbConstants;
+    import frc.robot.subsystems.ClimbSubsystem;
+    import frc.robot.subsystems.LEDSubsystem;
     import frc.robot.subsystems.LimelightSubsystem;
     import frc.robot.subsystems.SwerveSubsystem;
 // ============================================================================
@@ -13,62 +16,77 @@ package frc.robot.commands.Autos;
 public class AutoAlignRightCmd extends Command {
     // =================== INSTANCIA OS SUBSISTEMAS E VARIAVEIS =================
     private final SwerveSubsystem swerveSubsystem;
+    private final LEDSubsystem ledSubsystem;
     private final LimelightSubsystem limelightSubsystem;
+    private final ClimbSubsystem climbSubsystem;
     private PIDController angularAlignPIDController, xAlignPIDController, zAlignPIDController;
     private double tx, tz, angularError, xSpeed, zSpeed, angularSpeed;
     // ============================================================================
 
-    public AutoAlignRightCmd(SwerveSubsystem swerveSubsystem, LimelightSubsystem limelightSubsystem) {
+    public AutoAlignRightCmd(SwerveSubsystem swerveSubsystem, LimelightSubsystem limelightSubsystem, 
+                LEDSubsystem ledSubsystem, ClimbSubsystem climbSubsystem) {
         this.swerveSubsystem = swerveSubsystem;
         this.limelightSubsystem = limelightSubsystem;
+        this.ledSubsystem = ledSubsystem;
+        this.climbSubsystem = climbSubsystem;
 
         angularAlignPIDController = new PIDController(AutoConstants.kPLimelightAlignAngular, 0, 0.00);
-        angularAlignPIDController.setTolerance(0.5);
+        angularAlignPIDController.setTolerance(1);
 
-        xAlignPIDController = new PIDController(AutoConstants.kPLimelightAlignX, 0, 0.00);
-        xAlignPIDController.setTolerance(0.01);
-        
+        xAlignPIDController = new PIDController(3.7, 0, 0);
+        xAlignPIDController.setTolerance(0.015);
+            
         zAlignPIDController = new PIDController(AutoConstants.kPLimelightAlignZ, 0, 0.00);
-        zAlignPIDController.setTolerance(0.01);
+        zAlignPIDController.setTolerance(0.04);
 
         addRequirements(swerveSubsystem);
     }
 
     @Override
-    public void initialize() {
+    public void initialize() { 
+        climbConstants.clawSetpoint = 1.7;
+        LEDConstants.turboEffect = false;
+        limelightSubsystem.setPipeline(2, LimelightConstants.LimelightReefLeft);
     }
 
     @Override
     public void execute() {
+        ledSubsystem.setPattern(LEDConstants.blinkingYellow);
+
         tx = limelightSubsystem.getTX(LimelightConstants.LimelightReefLeft);
         tz = limelightSubsystem.getTZ(LimelightConstants.LimelightReefLeft);
         angularError = limelightSubsystem.getRY(LimelightConstants.LimelightReefLeft);
 
-        xSpeed = xAlignPIDController.calculate(tx, -0.02);
-        zSpeed = zAlignPIDController.calculate(tz, 0.41);
-        angularSpeed = angularAlignPIDController.calculate(angularError, 14);
+        xSpeed = xAlignPIDController.calculate(tx, 0.0);
+        zSpeed = zAlignPIDController.calculate(tz, 0.55);
+        angularSpeed = angularAlignPIDController.calculate(angularError, 0.0);
 
-        zSpeed = Math.min(Math.max(zSpeed, -1.5), 1.5);
-        xSpeed = Math.min(Math.max(xSpeed, -1.0), 1.0);
+        //System.out.println("Erro X: "+ Math.abs(xAlignPIDController.getError()));
+        //System.out.println("Erro Z: " + Math.abs(zAlignPIDController.getError()));
+
+        zSpeed = Math.min(Math.max(zSpeed, -1.7), 1.7);
+        xSpeed = Math.min(Math.max(xSpeed, -1.5), 1.5);
         angularSpeed = Math.min(Math.max(angularSpeed, -0.5), 0.5);
-
-        SmartDashboard.putNumber("xSpeed", xSpeed);
-        SmartDashboard.putNumber("zSpeed", zSpeed);
-        SmartDashboard.putNumber("angularSpeed", angularSpeed);
-
+        
         swerveSubsystem.setRobotOrientedSpeed(-zSpeed, xSpeed, angularSpeed);
     }
     
     @Override
     public void end(boolean interrupted) {
         swerveSubsystem.setRobotOrientedSpeed(0, 0, 0);
-        swerveSubsystem.stopModules();
-        System.out.println("Alinhado");
+        LEDConstants.turboEffect = true;
+
     }
 
     @Override
     public boolean isFinished() {
         return (xAlignPIDController.atSetpoint() && zAlignPIDController.atSetpoint() && angularAlignPIDController.atSetpoint()) || !(limelightSubsystem.getID(LimelightConstants.LimelightReefLeft) > 0);
+        
+        //if(Math.abs(xAlignPIDController.getError()) <= 0.0999 && Math.abs(zAlignPIDController.getError()) <= 0.0999)
+        //    return true;
+        //else
+        //    return false;
+
     }
 
 }

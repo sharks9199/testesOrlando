@@ -10,7 +10,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class IntakeSubsystem extends SubsystemBase {
@@ -22,11 +22,12 @@ public class IntakeSubsystem extends SubsystemBase {
     private final CANrangeConfiguration CANrangeConfig = new CANrangeConfiguration();
     private final SparkMaxConfig intakeMotorConfig;
     private double distanceFirst, distanceSecond;
+    ShuffleboardTab intakeTab;
 
     public IntakeSubsystem (){
         intakeMotorConfig = new SparkMaxConfig();
         intakeMotorConfig.idleMode(IdleMode.kBrake);
-        intakeMotorConfig.inverted(true);
+        intakeMotorConfig.inverted(false);
 
         CANrangeFirst.getConfigurator().apply(CANrangeConfig);
         CANrangeSecond.getConfigurator().apply(CANrangeConfig);
@@ -36,6 +37,14 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public double getPosition(){
         return intakeMotor.getEncoder().getPosition();
+    }
+
+    public double getSpeed(){
+        return intakeMotor.getEncoder().getVelocity();
+    }
+
+    public double getSetpoint(){
+        return intakeConstants.intakeSetpoint;
     }
 
     public boolean getIsFirstDetected(){
@@ -72,8 +81,8 @@ public class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Intake Speed", controlMotor.getEncoder().getVelocity());
-        SmartDashboard.putNumber("Intake Position", controlMotor.getEncoder().getPosition());
+        SmartDashboard.putNumber("Intake Position", getPosition());
+        SmartDashboard.putNumber("Intake Speed", getSpeed());
     }
 
 }

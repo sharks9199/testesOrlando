@@ -4,27 +4,26 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.climbConstants;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.ctre.phoenix6.configs.CANrangeConfiguration;
-import com.ctre.phoenix6.hardware.CANrange;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ClimbSubsystem extends SubsystemBase {
     private SparkClosedLoopController pidClimbController;
     private SparkClosedLoopController pidClawController;
-
     private final SparkMax planetaryMotor = new SparkMax(climbConstants.planetaryMotorID, MotorType.kBrushless);
     private final SparkMaxConfig planetaryMotorConfig = new SparkMaxConfig();
     private final SparkMax clawMotor = new SparkMax(climbConstants.clawMotorID, MotorType.kBrushless);
     private final SparkMaxConfig clawMotorConfig = new SparkMaxConfig();
+    //ShuffleboardTab climbTab;
 
     public ClimbSubsystem (){
+        //climbTab = Shuffleboard.getTab("Climb");
+
         pidClimbController = planetaryMotor.getClosedLoopController();
         planetaryMotorConfig.closedLoop.p(climbConstants.climbP);
         planetaryMotorConfig.idleMode(IdleMode.kBrake);
@@ -83,18 +82,20 @@ public class ClimbSubsystem extends SubsystemBase {
     }
     
     public void incrementClawSetpoint(double setpoint){
+        System.out.println("Claw Moving");
         climbConstants.clawSetpoint += setpoint;
     }
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Climb Position", planetaryMotor.getEncoder().getPosition());
-        SmartDashboard.putNumber("Climb Speed", planetaryMotor.getEncoder().getVelocity());
-        SmartDashboard.putNumber("Climb Setpoint", getClimbSetpoint());
+    //    System.out.println("Climb Position: " + getClimbPosition());
+         SmartDashboard.putNumber("Climb Position", planetaryMotor.getEncoder().getPosition());
+    //     SmartDashboard.putNumber("Climb Speed", planetaryMotor.getEncoder().getVelocity());
+    //     SmartDashboard.putNumber("Climb Setpoint", getClimbSetpoint());
 
-        SmartDashboard.putNumber("Claw Position", clawMotor.getEncoder().getPosition());
-        SmartDashboard.putNumber("Claw Speed", clawMotor.getEncoder().getVelocity());
-        SmartDashboard.putNumber("Claw Setpoint", getClawSetpoint());
+         SmartDashboard.putNumber("Claw Position", clawMotor.getEncoder().getPosition());
+    //     SmartDashboard.putNumber("Claw Speed", clawMotor.getEncoder().getVelocity());
+    //     SmartDashboard.putNumber("Claw Setpoint", getClawSetpoint());
     }
 
 }

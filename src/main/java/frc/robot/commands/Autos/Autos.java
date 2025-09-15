@@ -3,20 +3,50 @@ package frc.robot.commands.Autos;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import frc.robot.LimelightHelpers;
+import frc.robot.Constants.LimelightConstants;
+import frc.robot.Constants.climbConstants;
 import frc.robot.Constants.elevatorConstants;
 import frc.robot.Constants.intakeConstants;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LimelightSubsystem;
 
 public class Autos {
-    public static Command Shoot(IntakeSubsystem intakeSubsystem){
+    public static Command L2Algae(ElevatorSubsystem elevatorSubsystem, IntakeSubsystem intakeSubsystem){
         return Commands.sequence(
-            new InstantCommand(()-> intakeSubsystem.setIntake(intakeSubsystem.getPosition() < 10 ? 0.3 : -0.3)),
-            new WaitCommand(1),
-            new InstantCommand(()-> intakeSubsystem.setIntake(0))
+            new InstantCommand(()-> elevatorSubsystem.changeSetpoint(elevatorConstants.L2AlgaePosition)),
+            new InstantCommand(()-> intakeSubsystem.changeSetpoint(intakeConstants.L2AlgaePosition))
             );
+        }
+        
+    public static Command L3Algae(ElevatorSubsystem elevatorSubsystem, IntakeSubsystem intakeSubsystem){
+        return Commands.sequence(
+            new InstantCommand(()-> elevatorSubsystem.changeSetpoint(elevatorConstants.L3AlgaePosition)),
+            new InstantCommand(()-> intakeSubsystem.changeSetpoint(12))
+            );
+    }
+
+    public static Command ChangeToLimelightCoral(){
+        return Commands.sequence(
+            new InstantCommand(()-> LimelightConstants.LimelightToUpdatePose = LimelightConstants.LimelightCoral)
+            );
+            
+    }
+
+    public static Command ChangeToLimelightReef(){
+        return Commands.sequence(
+            new InstantCommand(()-> LimelightConstants.LimelightToUpdatePose = LimelightConstants.LimelightReefRight)
+            );
+            
+    }
+
+    public static Command ChangeToLimelightReefLeft(){
+        return Commands.sequence(
+            new InstantCommand(()-> LimelightConstants.LimelightToUpdatePose = LimelightConstants.LimelightReefLeft)
+            );
+            
     }
 
     public static Command L1Position(ElevatorSubsystem elevatorSubsystem, IntakeSubsystem intakeSubsystem){

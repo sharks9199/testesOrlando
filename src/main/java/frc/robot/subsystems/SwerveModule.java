@@ -6,6 +6,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -14,15 +15,16 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
 
 public class SwerveModule {
-
     private final TalonFX driveMotor;
     private final TalonFXConfiguration driveMotorConfig;
     private final SparkMax turningMotor;
@@ -30,7 +32,8 @@ public class SwerveModule {
     private double turningMotorSpeed;
     private final CANcoder absoluteEncoder;
 
-    private final PIDController turningPidController;
+    ProfiledPIDController turningPidController = new ProfiledPIDController(0.5, 0.0, 0.0,
+    new TrapezoidProfile.Constraints(800, 600));
 
     private final boolean absoluteEncoderReversed;
     private final double absoluteEncoderOffsetRad;
@@ -47,6 +50,7 @@ public class SwerveModule {
         driveMotorConfig = new TalonFXConfiguration();
         driveMotorConfig.Feedback.withSensorToMechanismRatio(0.9);
         driveMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        driveMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         driveMotor.getConfigurator().apply(driveMotorConfig);
 
         turningMotor = new SparkMax(turningMotorId, MotorType.kBrushless);
@@ -54,20 +58,24 @@ public class SwerveModule {
 
         turningMotorConfig.inverted(turningMotorReversed);
         turningMotorConfig.idleMode(IdleMode.kCoast);
-
+                    
         turningMotorConfig.encoder.positionConversionFactor(ModuleConstants.kTurningEncoderRot2Rad);
         turningMotorConfig.encoder.velocityConversionFactor(ModuleConstants.kTurningEncoderRPM2RadPerSec);
 
         turningMotor.configure(turningMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-        turningPidController = new PIDController(ModuleConstants.kPTurning, 0, 0);
+        
         turningPidController.enableContinuousInput(-Math.PI, Math.PI);
-        turningPidController.setTolerance(0.0);
+        turningPidController.reset(getTurningPosition());
 
         resetEncoders();
     }
 
     public double getDrivePosition() {
         return driveMotor.getPosition().getValueAsDouble() * ModuleConstants.kDriveEncoderRot2Meter;
+    }
+
+    public double getDriveCurrent() {
+        return driveMotor.getStatorCurrent().getValueAsDouble();
     }
 
     public double getTurningPosition() {
@@ -106,6 +114,10 @@ public class SwerveModule {
         return new SwerveModulePosition(getDrivePosition(), new Rotation2d(getTurningPosition()));
     }
 
+    public double getModuleHeading(){
+        return getAbsoluteEncoderRad();
+    }
+
     public void setDesiredState(SwerveModuleState state, Rotation2d rotation2d, Boolean plotar) {
         if (Math.abs(state.speedMetersPerSecond) < 0.001) {
             stop();
@@ -115,14 +127,34 @@ public class SwerveModule {
         state.optimize(rotation2d);
 
         driveMotor.set(state.speedMetersPerSecond / DriveConstants.kPhysicalMaxSpeedMetersPerSecond);
-        
-        SmartDashboard.putNumber("Turning", getTurningPosition());
-        SmartDashboard.putNumber("Angle", state.angle.getRadians());
-        
         turningMotorSpeed = turningPidController.calculate(getTurningPosition(), state.angle.getRadians());
+        turningMotor.set(turningMotorSpeed);
 
-        SmartDashboard.putNumber("Turning Speed", turningMotorSpeed);
+        if (plotar){
+            SmartDashboard.putNumber("POSITION", getTurningPosition());
+            SmartDashboard.putNumber("SETPOINT", state.angle.getRadians());
+            SmartDashboard.putNumber("SPEED", turningMotorSpeed);
+        }
         
+        //turningMotor.getClosedLoopController().setReference(state.angle.getRadians(), ControlType.kMAXMotionPositionControl);
+    }
+
+    public void setDesiredStateNoOptimized(SwerveModuleState state, Rotation2d rotation2d, Boolean plotar) {
+        if (Math.abs(state.speedMetersPerSecond) < 0.001) {
+            stop();
+            return;
+        }
+        
+        driveMotor.set(state.speedMetersPerSecond / DriveConstants.kPhysicalMaxSpeedMetersPerSecond);
+        turningMotorSpeed = turningPidController.calculate(getTurningPosition(), state.angle.getRadians());
+        
+        if (plotar){
+            SmartDashboard.putNumber("POSITION", getTurningPosition());
+            SmartDashboard.putNumber("SETPOINT", state.angle.getRadians());
+            SmartDashboard.putNumber("SPEED", turningMotorSpeed);
+        }
+
+        //turningMotor.getClosedLoopController().setReference(state.angle.getRadians(), ControlType.kMAXMotionPositionControl);
         turningMotor.set(turningMotorSpeed);
     }
 

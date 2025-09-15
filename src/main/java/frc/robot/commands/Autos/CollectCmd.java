@@ -4,7 +4,8 @@ import java.util.function.Supplier;
 
 // ======================= IMPORTAÇÃO DE BIBLIOTECAS =======================
     import edu.wpi.first.wpilibj2.command.Command;
-    import frc.robot.Constants.elevatorConstants;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.elevatorConstants;
     import frc.robot.Constants.intakeConstants;
     import frc.robot.subsystems.ElevatorSubsystem;
     import frc.robot.subsystems.IntakeSubsystem;
@@ -15,10 +16,11 @@ public class CollectCmd extends Command {
     private final ElevatorSubsystem elevatorSubsystem;
     private final IntakeSubsystem intakeSubsystem;
     private final Supplier<Boolean> cancelButton;
+    private double collectPosition;
     // ============================================================================
 
     public CollectCmd(ElevatorSubsystem elevatorSubsystem, IntakeSubsystem intakeSubsystem, 
-                Supplier<Boolean> cancelButton) {
+                Supplier<Boolean> cancelButton, double collectPosition) {
         this.elevatorSubsystem = elevatorSubsystem;
         this.intakeSubsystem = intakeSubsystem;
         this.cancelButton = cancelButton;
@@ -27,7 +29,7 @@ public class CollectCmd extends Command {
 
     @Override
     public void initialize() {
-        elevatorSubsystem.changeSetpoint(elevatorConstants.CollectPosition);
+        elevatorSubsystem.changeSetpoint(collectPosition);
         intakeSubsystem.changeSetpoint(intakeConstants.CollectPosition);
 
         intakeSubsystem.setHood(-0.15);

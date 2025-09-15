@@ -1,7 +1,8 @@
 package frc.robot.commands.Elevator;
 
 import java.util.function.Supplier;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.elevatorConstants;
@@ -12,8 +13,9 @@ public class ElevatorPidCmd extends Command {
     private double error;
 
     ElevatorSubsystem elevatorSubsystem;
-    PIDController elevatorPidController = new PIDController(0.1,0,0);
-
+    ProfiledPIDController controller = new ProfiledPIDController(0.1, 0.0, 0.0,
+    new TrapezoidProfile.Constraints(800, 600));
+    
     public ElevatorPidCmd(ElevatorSubsystem elevatorSubsystem, Supplier<Integer> pov){
         this.elevatorSubsystem = elevatorSubsystem;
         this.pov = pov;
@@ -22,7 +24,8 @@ public class ElevatorPidCmd extends Command {
 
     @Override
     public void initialize(){
-
+        elevatorConstants.elevatorSetpoint = elevatorSubsystem.getPosition();
+        controller.reset(elevatorSubsystem.getPosition());
     }
 
     @Override
@@ -32,7 +35,9 @@ public class ElevatorPidCmd extends Command {
 
         elevatorConstants.elevatorSetpoint = Math.min(Math.max(elevatorConstants.elevatorSetpoint, elevatorConstants.elevatorMin), elevatorConstants.elevatorMax);
 
-        error = elevatorPidController.calculate(elevatorSubsystem.getPosition(), elevatorConstants.elevatorSetpoint);//Math.max(elevatorConstants.elevatorSetpoint, -198));
+        error = controller.calculate(elevatorSubsystem.getPosition(), elevatorConstants.elevatorSetpoint);
+
+        //error = elevatorPidController.calculate(, );//Math.max(elevatorConstants.elevatorSetpoint, -198));
         elevatorSubsystem.setMotor(error);
     
     }

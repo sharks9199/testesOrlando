@@ -8,17 +8,15 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ElevatorSubsystem extends SubsystemBase {
     private final SparkMax elevatorMotor = new SparkMax(elevatorConstants.elevatorMotorID, MotorType.kBrushless);
     private final SparkMaxConfig elevatorMotorConfig;
+    //ShuffleboardTab elevatorTab;
 
     public ElevatorSubsystem (){
-        //elevatorMotorConfig.absoluteEncoder.positionConversionFactor(0.05);
-        //elevatorMotor.configure(elevatorMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters)
-        //absoluteEncoder = elevatorMotor.getAbsoluteEncoder();
+        //elevatorTab = Shuffleboard.getTab("Elevator");
 
         elevatorMotorConfig = new SparkMaxConfig();
         elevatorMotorConfig.idleMode(IdleMode.kBrake);
@@ -31,12 +29,15 @@ public class ElevatorSubsystem extends SubsystemBase {
         return elevatorMotor.getEncoder().getPosition();
     }
 
+    public double getSpeed(){
+        return elevatorMotor.getEncoder().getVelocity();
+    }
+
     public void setStopMode(){
         elevatorMotor.set(0);
     }
 
     public void setMotor(double speed){
-        SmartDashboard.putNumber("Elevator Speed", speed);
 
         elevatorMotor.set(speed);
     }
@@ -47,7 +48,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Elevador", getPosition());
+        SmartDashboard.putNumber("Elevador Position", getPosition());
+        SmartDashboard.putNumber("Elevador Speed", getSpeed());
     }
 
 }

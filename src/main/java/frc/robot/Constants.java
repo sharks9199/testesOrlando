@@ -1,15 +1,21 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Seconds;
+
+import java.util.Optional;
+
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.util.Color;
 
 public class Constants {
     public static final class ModuleConstants{
@@ -79,19 +85,22 @@ public class Constants {
         public static final double kPhysicalMaxAngularSpeedRadiansPerSecond = 2 * 2 * Math.PI;
         public static final double kNoteCollectMaxSpeed = 2.5;
 
-        public static double kSpeed = 1.5;
-        public static double kSpeedAngular = 1.5;
+        public static double kSpeed = 1;
+        public static double kSpeedAngular = 1;
+        public static boolean lowSpeed = true;
+        public static boolean ShowRoomMode = false;
 
-        public static double kTeleDriveMaxSpeedMetersPerSecond = kPhysicalMaxSpeedMetersPerSecond / kSpeed;
+        public static double kTeleDriveMaxSpeedMetersPerSecond = kPhysicalMaxSpeedMetersPerSecond;
         public static double kTeleDriveMaxAngularSpeedRadiansPerSecond = // 
-                kPhysicalMaxAngularSpeedRadiansPerSecond / kSpeedAngular;
+                kPhysicalMaxAngularSpeedRadiansPerSecond;
         public static double kTeleDriveMaxAccelerationUnitsPerSecond = 1.5;
-        public static double kTeleDriveMaxAngularAccelerationUnitsPerSecond = 2;
+        public static double kTeleDriveMaxAngularAccelerationUnitsPerSecond = 3;
 
         public static final double ksVolts = 0.29565;
         public static final double kvVoltSecondsPerMeter = 0.8224;
         public static final double kaVoltSecondsSquaredPerMeter = 1.4512;
         public static final double kPDriveVel = 1.1949;
+
     }
 
     public static final class FieldPoses {
@@ -99,24 +108,24 @@ public class Constants {
         public static PathPlannerPath kCoralBlueLeftPath;
         public static PathPlannerPath kCoralBlueRightPath;
 
-        public static final Pose2d kCoralBlueLeft = new Pose2d(1.11, 6.93, new Rotation2d(-1));
-        public static final Pose2d kCoralBlueRight = new Pose2d(1.06, 0.96, new Rotation2d(1));
-    
-        // public static final Pose2d kGrid1 = new Pose2d(, , new Rotation2d(-1.14));
-        // public static final Pose2d kGrid2 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        // public static final Pose2d kGrid3 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        // public static final Pose2d kGrid4 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        // public static final Pose2d kGrid5 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        // public static final Pose2d kGrid6 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        // public static final Pose2d kGrid7 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        // public static final Pose2d kGrid8 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        // public static final Pose2d kGrid9 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        // public static final Pose2d kGrid10 = new Pose2d(1.05, 7.10, new Rotation2d(-1));
-        public static final Pose2d kReef6 = new Pose2d(3.48, 5.26, new Rotation2d(-1));
-        public static final Pose2d kGrid11 = new Pose2d(3.86, 5.26, new Rotation2d(-1));
-        public static final Pose2d kGrid12 = new Pose2d(3.55, 5.16, new Rotation2d(-1));
+        public static final Pose2d kCoralBlueRight = new Pose2d(1.01, 0.98, new Rotation2d(0.96));
+        public static final Pose2d kCoralBlueLeft = new Pose2d(0.95, 7.02, new Rotation2d(-1));
+        public static final Pose2d kCoralRedRight = new Pose2d(16.61, 7.11, new Rotation2d(-2.2));
+        public static final Pose2d kCoralRedLeft = new Pose2d(16.60, 1.05, new Rotation2d(2.1));
+        
+        public static final Optional<Alliance> alliance = DriverStation.getAlliance();
+        
+        public static final Pose2d kCoralRight = alliance.get() == Alliance.Blue ? kCoralBlueRight : kCoralRedRight;
+        public static final Pose2d kCoralLeft = alliance.get() == Alliance.Blue ? kCoralBlueLeft : kCoralRedLeft;
+        
+        public static final Pose2d kGrid1 = new Pose2d(2.42, 3.89, new Rotation2d(0));
+        public static final Pose2d kGrid2 = new Pose2d(3.23, 2.21, new Rotation2d(1));
+        public static final Pose2d kGrid3 = new Pose2d(5.56, 2.07, new Rotation2d(2));
+        public static final Pose2d kGrid4 = new Pose2d(6.32, 3.98, new Rotation2d(3.1));
+        public static final Pose2d kGrid5 = new Pose2d(5.30, 5.68, new Rotation2d(-2.2));
+        public static final Pose2d kGrid6 = new Pose2d(3.53, 5.57, new Rotation2d(-1));
 
-        public static final Pose2d[] gridPoses = {kGrid11, kGrid12};
+        public static final Pose2d[] gridPoses = {kGrid1, kGrid2, kGrid3, kGrid4, kGrid5, kGrid6};
     }
 
     public static final class elevatorConstants {
@@ -124,13 +133,50 @@ public class Constants {
         
         public static final double CollectPosition = 4.1;
         public static final double L1Position = 4.1;
-        public static final double L2Position = 38;
-        public static final double L3Position = 88;
-        public static final double L4Position = 88;
+        public static final double L2Position = 15.8;
+        public static final double L3Position = 51.8;
+        public static final double L4Position = 54;
+        public static final double L2AlgaePosition = 49;
+        public static final double L3AlgaePosition = 67;
 
-        public static final double elevatorMax = 88;
+        public static final double elevatorMax = 54;
         public static final double elevatorMin = 2;
         public static double elevatorSetpoint = 0;
+    }
+
+    public static final class LEDConstants {
+        // =========================== LED OFF =================================
+        public static final LEDPattern ledOff = LEDPattern.solid(Color.kBlack);
+        // =======================================================================
+
+        // =========================== Blinking Green ===========================
+        public static LEDPattern baseGreen = LEDPattern.solid(Color.kGreen);
+        public static LEDPattern baseBlack = LEDPattern.solid(Color.kBlack);
+        // =======================================================================
+
+        // =========================== Blinking Red ===========================
+        public static LEDPattern baseRed = LEDPattern.solid(Color.kRed);
+        public static LEDPattern blinkingRed = baseRed.blink(Seconds.of(0.1));
+        // =======================================================================
+        
+        // =========================== Blinking Blue ============================
+        public static LEDPattern baseBlue = LEDPattern.solid(Color.kBlue);
+        public static LEDPattern blinkingBlue = baseBlue.blink(Seconds.of(0.1));
+        // =======================================================================
+        
+        // =========================== Blinking Yellow ==========================
+        public static LEDPattern baseYellow = LEDPattern.solid(Color.kYellow);
+        public static LEDPattern blinkingYellow = baseYellow.blink(Seconds.of(0.1));
+        // =======================================================================
+        
+        // ================================ Turbo ===============================
+        public static double speed = 0;
+        public static final LEDPattern base = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kRed, Color.kOrangeRed);
+        public static LEDPattern mask = LEDPattern.progressMaskLayer(()-> speed);
+        public static LEDPattern turboDisplay = base.mask(mask);
+        // =======================================================================
+
+        public static boolean turboEffect = true;
     }
 
     public static final class intakeConstants {
@@ -141,15 +187,22 @@ public class Constants {
         public static final int CANrangeSecondID = 21;
 
         public static final double kCANrangeDetectionLimit = 0.1;
-        public static final double CollectPosition = 1;
-        public static final double L1Position = 3.02;
-        public static final double L2Position = 3.02;
-        public static final double L3Position = 3.02;
-        public static final double L4Position = 17.4;
+        public static final double CollectPosition = 0.2;
+        public static final double AutoCollectPosition = 0;
+        public static final double BackPosition = 21;
+        public static final double L1Position = 3.5;
+        public static final double L2Position = 3.5;
+        public static final double L3Position = 3.5;
+        public static final double L4AutoPosition = 16;
+        public static final double L4Position = 18;
+        public static final double UpPosition = 24;
+
+        public static final double L2AlgaePosition = 8.97;
+        public static final double L3AlgaePosition = 10;
 
         public static final double intakeMaxSpeed = 0.4;
-        public static final double intakeMax = 24.2;
-        public static final double intakeMin = 0;
+        public static final double intakeMax = 25;
+        public static final double intakeMin = -0.1;
         public static Boolean intakeCollecting = false;
         public static double intakeSetpoint = 0;
     }
@@ -163,11 +216,13 @@ public class Constants {
 
         public static final double climbMaxSpeed = 0.5;
         public static final double climbMinSpeed = 0.5;
-        public static final double climbMax = 400;
-        public static final double climbMin = -400;
+        public static final double climbMax = 1000;
+        public static final double climbMin = -1000;
 
-        public static final double clawMax = 2;
-        public static final double clawMin = 0;
+        public static final double robotUpPosition = 256;
+
+        public static final double clawMax = 2.45;
+        public static final double clawMin = 0.1;
 
         public static final double climbP = 0.7;
         public static final double clawP= 0.7;
@@ -176,22 +231,32 @@ public class Constants {
     }
 
     public static final class AutoConstants {
-        public static PathConstraints constraints = new PathConstraints(3.0, 2.7, 
+        public static PathConstraints constraints = new PathConstraints(4.0, 3.5, 
+        Units.degreesToRadians(360), Units.degreesToRadians(540));
+        
+        public static PathConstraints constraintsAuto = new PathConstraints(4.0, 3.5, 
         Units.degreesToRadians(360), Units.degreesToRadians(540));
 
-        public static final double kPLimelightAlignX = 2;
+        public static final double kPLimelightAlignX = 3;
         public static final double kPLimelightAlignZ = 3;
         public static final double kPLimelightAlignAngular = 0.1;
 
         public static final double kMaxZAcelleration = 0.5;
         public static final double kMaxXAcelleration = 3;
         public static final double kMaxAngularAcelleration = 3;
+
+    }
+
+    public static final class InterfaceConstants {
+        public static boolean[][] fedReefPositions = new boolean[3][12];
+
     }
     
     public static final class LimelightConstants {
         public static String LimelightCoral = "limelight-coral"; 
         public static String LimelightReefLeft = "limelight-reefle";
         public static String LimelightReefRight = "limelight-reefri";
+        public static String LimelightToUpdatePose = LimelightReefRight;
     }
 
     public static final class XboxConstants {
@@ -222,8 +287,11 @@ public class Constants {
         public static final int kHoodOutputButtonIdx = 8;
         public static final int kClimbUpButtonIdx = 9;
         public static final int kClimbDownButtonIdx = 10;
+        public static final int kLowSpeedButtonIdx = 10;
         public static final int kClawOpenButtonIdx = 11;
         public static final int kClawCloseButtonIdx = 12;
+        public static final int kIntakeL4OperatorButtonIdx = 2;
+        public static final int kMoveForwardOperatorButtonIdx = 1;
         public static final int kRaiseIntakeButtonIdx = 90;
         public static final int kLowerIntakeButtonIdx = 270;
         
@@ -232,9 +300,13 @@ public class Constants {
         
         public static final int kAlignReefLeftButtonIdx = 5;
         public static final int kAlignReefRightButtonIdx = 6;
-        public static final int kCollectCoralButtonIdx = 3;
+        public static final int kShowRoomModeButtonIdx = 3;
         public static final int kScoreCoralButtonIdx = 4;
         public static final int kCollectButtonIdx = 2;
+
+        public static final int kRemoveAlgaeL2Idx = 4;
+        public static final int kRemoveAlgaeL3Idx = 3;
+
         public static final int kL1ButtonIdx = 180;
         public static final int kL2ButtonIdx = 90;
         public static final int kL3ButtonIdx = 270;
@@ -248,7 +320,16 @@ public class Constants {
         public static final int kDriverYAxis = 1;
         public static final int kDriverRotAxis = 2;
         
-        public static final double kDeadband = 0.05;   
+        public static final double kDeadband = 0.05;  
+        
+        // ========================== Virtual Controller ===============================
+        public static final int kThirdDriverControllerPort = 2;
+        public static final int levelAdd = 1;
+        public static final int levelRem = 2;
+        public static final int l2Marker = 0;
+        public static final int l3Marker = 1;
+        public static final int l4Marker = 2;
+        // ===========================================================================
 
     }
 
