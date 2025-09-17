@@ -40,7 +40,9 @@ import frc.robot.Constants.FieldPoses;
 import frc.robot.Constants.LimelightConstants;
 import frc.robot.Constants.climbConstants;
 import frc.robot.Constants.intakeConstants;
+import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
+import frc.robot.RobotContainer;
 
 public class SwerveSubsystem extends SubsystemBase {
     NetworkTable table = NetworkTableInstance.getDefault().getTable("RobotPhysics");
@@ -103,6 +105,7 @@ public class SwerveSubsystem extends SubsystemBase {
     
     public SwerveSubsystem() {
         RobotConfig config;
+        
         
         // Do this in either robot or subsystem init
         SmartDashboard.putData("Field", m_field);
@@ -392,6 +395,13 @@ public class SwerveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        RobotContainer.tabscontroller.applyTurningPidTo(frontLeft);
+        RobotContainer.tabscontroller.applyTurningPidTo(frontRight);
+        RobotContainer.tabscontroller.applyTurningPidTo(backLeft);
+        RobotContainer.tabscontroller.applyTurningPidTo(backRight);
+        
+        //System.out.println(Constants.DriveConstants.kPSwerveModule);
+        
         publisherStates.set(getSwerveModuleState());
         publisherPose.set(getPoseEstimator());
         HeadingEntry.setDouble(Math.toRadians(getHeading()));

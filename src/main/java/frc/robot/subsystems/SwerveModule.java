@@ -20,9 +20,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim.KitbotWheelSize;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
+
+import frc.robot.subsystems.ShuffleManager;
 
 public class SwerveModule {
     private final TalonFX driveMotor;
@@ -32,8 +35,8 @@ public class SwerveModule {
     private double turningMotorSpeed;
     private final CANcoder absoluteEncoder;
 
-    ProfiledPIDController turningPidController = new ProfiledPIDController(0.5, 0.0, 0.0,
-    new TrapezoidProfile.Constraints(800, 600));
+    ProfiledPIDController turningPidController = new ProfiledPIDController(DriveConstants.kPSwerveModule,DriveConstants.kISwerveModule,DriveConstants.kDSwerveModule,
+    new TrapezoidProfile.Constraints(DriveConstants.maxVelocity, DriveConstants.maxAcceleration));
 
     private final boolean absoluteEncoderReversed;
     private final double absoluteEncoderOffsetRad;
@@ -66,7 +69,6 @@ public class SwerveModule {
         
         turningPidController.enableContinuousInput(-Math.PI, Math.PI);
         turningPidController.reset(getTurningPosition());
-
         resetEncoders();
     }
 

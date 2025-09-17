@@ -12,7 +12,8 @@ import com.ctre.phoenix6.SignalLogger;
     import edu.wpi.first.networktables.GenericEntry;
     import edu.wpi.first.wpilibj.DriverStation;
     import edu.wpi.first.wpilibj.Joystick;
-    import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
     import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
     import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
     import edu.wpi.first.wpilibj2.command.Command;
@@ -37,7 +38,8 @@ import com.ctre.phoenix6.SignalLogger;
     import frc.robot.commands.Elevator.ElevatorPidCmd;
     import frc.robot.commands.Intake.IntakePidCmd;
     import frc.robot.subsystems.LimelightSubsystem;
-    import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShuffleManager;
+import frc.robot.subsystems.IntakeSubsystem;
     import frc.robot.subsystems.LEDSubsystem;
     import frc.robot.subsystems.ClimbSubsystem;
     import frc.robot.subsystems.ElevatorSubsystem;
@@ -45,6 +47,8 @@ import com.ctre.phoenix6.SignalLogger;
 // ============================================================================
 
 public class RobotContainer {
+    //Cria uma instância do gestor de Tabs do ShuffleBoard
+    public static ShuffleManager tabscontroller = new ShuffleManager();
     // Cria o objeto para a escolha do autônomo
     SendableChooser<Command> AutoChooser = AutoBuilder.buildAutoChooser();
     
@@ -63,7 +67,7 @@ public class RobotContainer {
     // ============================================================================
     
     // ======================== INSTANCIA O SHUFFLEBOARD =========================
-    ShuffleboardTab intakeTab, limelightTab, climbTab, elevatorTab;
+    ShuffleboardTab intakeTab, limelightTab, climbTab, elevatorTab, configTab;
     public GenericEntry TXLSetpointEntry, TZLSetpointEntry, RYLSetpointEntry, TXRSetpointEntry, TZRSetpointEntry , RYRSetpointEntry;
     public GenericEntry TXLSpeedEntry, TZLSpeedEntry, RYLSpeedEntry, TXRSpeedEntry, TZRSpeedEntry, RYRSpeedEntry;
     public PathPlannerPath pathSecond, pathThird, pathFirstPosition, pathThirdPosition;
@@ -72,6 +76,8 @@ public class RobotContainer {
     // ============================================================================
 
     public RobotContainer() {
+        
+        
         try{
             // Load the path you want to follow using its name in the GUI
             // wasdwas dwasd wasd wasd wasd w
@@ -84,6 +90,7 @@ public class RobotContainer {
         } catch (Exception e) {
             DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
         }
+
         
         NamedCommands.registerCommand("FirstRed", swerveSubsystem.pathfindToStartingPoseRed(()-> pathFirstPosition));
         NamedCommands.registerCommand("SecondRed", swerveSubsystem.pathfindToStartingPoseRed(()-> pathThirdPosition));
@@ -160,7 +167,7 @@ public class RobotContainer {
 
         // Coloca no ShuffleBoard a janela para escolher o Autônomo
         SmartDashboard.putData("Autonomo", AutoChooser);
-
+        
         // Atribui as funções para cada botão do Controle
         configureButtonBindings();
     }
@@ -306,4 +313,5 @@ public class RobotContainer {
     }
     // ========================================================
 
+    
 }

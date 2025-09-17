@@ -100,7 +100,14 @@ public class Constants {
         public static final double kvVoltSecondsPerMeter = 0.8224;
         public static final double kaVoltSecondsSquaredPerMeter = 1.4512;
         public static final double kPDriveVel = 1.1949;
-
+        /*variáveis que não são constantes
+          são ajustadas pelo ShuffleBoard*/
+        public static  double maxVelocity = 800;
+        public static  double maxAcceleration = 600; 
+        public static double kPSwerveModule = 0.5;
+        public static double kISwerveModule = 0.0;
+        public static double kDSwerveModule = 0.0;
+        
     }
 
     public static final class FieldPoses {
